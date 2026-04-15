@@ -1,0 +1,43 @@
+# Python
+backend/__pycache__/
+backend/*.py[oc]
+backend/.env
+backend/.venv
+backend/.pytest_cache/
+backend/.eggs/
+backend/*.egg-info
+backend/dist/
+backend/build/
+backend/wheels/
+backend/.DS_Store
+
+
+# Node.js / Next.js
+frontend/node_modules/
+frontend/.next/
+frontend/.env
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/.DS_Store
+
+# OS generated
+.DS_Store
+Thumbs.db
+
+# Editor directories and files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# General env files
+.env
+.env.*
