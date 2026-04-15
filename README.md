@@ -21,8 +21,8 @@ Primely/
 
 ### Prerequisites
 
-- **Backend:** Python 3.8+ (recommend using [venv](https://docs.python.org/3/library/venv.html) or [virtualenv](https://virtualenv.pypa.io/))
-- **Frontend:** Node.js 16+ and npm/yarn
+- **Backend:** Python 3.9+ (recommend using [venv](https://docs.python.org/3/library/venv.html) or [virtualenv](https://virtualenv.pypa.io/))
+- **Frontend:** Node.js 16+ and bun
 
 ---
 
