@@ -8,8 +8,11 @@ class ReqAndResLoggingMiddleware(BaseHTTPMiddleware):
     async def dispatch(
         self, request: Request, call_next: RequestResponseEndpoint
     ) -> Response:
+
         # log the request
-        logger.info(f"Incoming Request: {request.method} {request.url}")
+        ip = request.headers.get("x-forwarded-for") or request.client.host
+        logger.info(f"Incoming Request: {request.method} {request.url} by {ip}")
+
         # process request and get a response
         response = await call_next(request)
 

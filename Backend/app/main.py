@@ -22,4 +22,5 @@ app.add_middleware(ReqAndResLoggingMiddleware)
 
 logger.info("Startup: DB and server up and running")
 
+# main router
 app.include_router(api_router)

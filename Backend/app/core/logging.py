@@ -4,7 +4,7 @@ from logging.handlers import RotatingFileHandler
 from .config import settings
 
 # create logger
-logger = logging.getLogger("my_app")
+logger = logging.getLogger("Primely")
 logger.setLevel(logging.DEBUG if settings.is_prod else logging.INFO)
 
 # console handler
