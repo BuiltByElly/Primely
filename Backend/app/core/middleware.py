@@ -1,3 +1,5 @@
+from time import time
+
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 
@@ -9,15 +11,22 @@ class ReqAndResLoggingMiddleware(BaseHTTPMiddleware):
         self, request: Request, call_next: RequestResponseEndpoint
     ) -> Response:
 
-        # log the request
-        ip = request.headers.get("x-forwarded-for") or request.client.host
-        logger.info(f"Incoming Request: {request.method} {request.url} by {ip}")
-
+        start = time()
         # process request and get a response
         response = await call_next(request)
 
-        # log the response
+        latency = time() - start
+
+        user_public_id = getattr(request.state, "public_id", None)
+
+        # log the req and res
         logger.info(
-            f"Outgoing Response: {response.status_code} {request.method} {request.url}"
+            {
+                "method": request.method,
+                "path": request.url.path,
+                "status": response.status_code,
+                "latency": latency,
+                "public_id": user_public_id,
+            }
         )
         return response

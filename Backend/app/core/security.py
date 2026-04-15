@@ -1,3 +1,4 @@
+import hashlib
 from datetime import datetime, timedelta, timezone
 
 import jwt
@@ -12,6 +13,10 @@ password_hash = PasswordHash.recommended()
 
 def hash_password(password: str):
     return password_hash.hash(password)
+
+
+def hash_token(token: str):
+    return hashlib.sha256(token.encode()).hexdigest()
 
 
 def verify_password(password: str, hashed_password: str):
