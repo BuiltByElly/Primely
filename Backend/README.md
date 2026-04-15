@@ -1,19 +1,25 @@
 # Backend – Primely
 
 This directory contains the **Python backend** for the Primely project.  
-You can use any Python web framework here (e.g., FastAPI, Flask, Django).  
-Below are general instructions for setting up and running a typical Python API backend.
+This project uses FastAPI.  
+Below are general instructions for setting up and running the backend.
 
 ---
 
 ## Project Structure
 
 ```
-backend/
-  app.py                # Main application entry point (example)
-  requirements.txt      # Python dependencies
-  venv/                 # (Optional) Virtual environment
-  ...
+Backend/
+  alembic/              #Alembic files
+  app/
+     main.py            # Main application entry point (example)
+     api/               # contains endpoints and their dependencies
+     core/              # contains database initialization, logging, config and middleware
+     models/            # contains tables for the database
+     schemas/           # contains pydantic data models for internal data types
+     service/           # contains the business logic
+     tests/             # contains test logic for important endpoints
+     utils/             # contains utility helpers used through out the app
 ```
 
 ---
@@ -24,10 +30,7 @@ backend/
 
 ```sh
 python -m venv venv
-# On Windows:
-venv\Scripts\activate
-# On macOS/Linux:
-source venv/bin/activate
+
 ```
 
 ### 2. Install Dependencies
@@ -39,9 +42,19 @@ pip install -r requirements.txt
 ### 3. Run the Backend
 
 ```sh
-python app.py
+fastapi dev
 ```
-*(Or use the appropriate command for your framework, e.g., `uvicorn app:app --reload` for FastAPI)*
+or
+
+```sh
+python -m fastapi dev
+```
+or
+
+```sh
+python -m uvicorn app.main:app --reload
+```
+
 
 ---
 
