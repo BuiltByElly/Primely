@@ -29,6 +29,7 @@ def create_access_token(user_id: str):
             "sub": user_id,
             "exp": datetime.now(timezone.utc)
             + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
+            "type": "access",
         },
         settings.SECRET_KEY,
         algorithm=settings.ALGORITHM,
@@ -48,7 +49,7 @@ def create_refresh_token(user_id: str):
     )
 
 
-def decode_token(token: str):
+def decode_token(token: str, token_type: str | None = None):
     try:
         decoded_token = jwt.decode(
             token,
@@ -61,6 +62,11 @@ def decode_token(token: str):
     except jwt.InvalidTokenError:
         raise HTTPException(
             status_code=HTTP_401_UNAUTHORIZED, detail="Invalid token error"
+        )
+
+    if token_type and decoded_token.get("type") != token_type:
+        raise HTTPException(
+            status_code=HTTP_401_UNAUTHORIZED, detail="Invalid token type"
         )
 
     return decoded_token

@@ -21,10 +21,10 @@ from app.services.authentication import AuthService, get_current_user
 auth_router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
-@auth_router.post("/signin")
-async def signin(response: Response, form_data: LoginSchema, session: SessionDeps):
+@auth_router.post("/register")
+async def register(response: Response, form_data: LoginSchema, session: SessionDeps):
     auth_service = AuthService(session)
-    if auth_service.validate_user_credentials(
+    if auth_service.validate_for_signin(
         form_data.username, form_data.password, form_data.email
     ):
         user = auth_service.signin_user(
@@ -47,16 +47,16 @@ async def signin(response: Response, form_data: LoginSchema, session: SessionDep
         )
         response.headers["X-Access-Token"] = access_token
 
-        logger.info(f"User Action: user {user.public_id} signed in")
+        logger.info(f"User Action: user {user.public_id} registered")
 
-        return {"success": True, "message": "Signed in"}
+        return {"success": True, "message": "Registered successfully"}
 
 
 @auth_router.post("/login")
 async def login(response: Response, form_data: LoginSchema, session: SessionDeps):
     auth_service = AuthService(session)
 
-    if auth_service.validate_user_credentials(
+    if auth_service.validate_for_login(
         form_data.username, form_data.password, form_data.email
     ):
         user = auth_service.authenticate_user(
@@ -92,24 +92,22 @@ async def login(response: Response, form_data: LoginSchema, session: SessionDeps
 async def refresh(request: Request, response: Response, session: SessionDeps):
     refresh_token = request.cookies.get("refresh_token")
     if not refresh_token:
-        raise HTTPException(
-            status_code=HTTP_401_UNAUTHORIZED, detail="Refresh token not found"
-        )
+        raise HTTPException(status_code=HTTP_401_UNAUTHORIZED, detail="Not authorized")
+
+    # Validate token type and decode
+    payload = decode_token(refresh_token, token_type="refresh")
+    user_public_id = payload["sub"]
     token_hash = hash_token(refresh_token)
 
-    payload = decode_token(refresh_token)
-    user_public_id = payload["sub"]
     now = datetime.now(timezone.utc)
 
-    # validate refresh token
+    # validate refresh token exists in database
     db_refresh_token = session.exec(
         select(RefreshTokens).where(RefreshTokens.token_hash == token_hash)
     ).first()
 
     if not db_refresh_token:
-        raise HTTPException(
-            status_code=HTTP_401_UNAUTHORIZED, detail="Refresh token from db not found"
-        )
+        raise HTTPException(status_code=HTTP_401_UNAUTHORIZED, detail="Not authorized")
     if db_refresh_token.revoked:
         raise HTTPException(
             status_code=HTTP_401_UNAUTHORIZED, detail="Invalid Refresh Token"
@@ -117,28 +115,35 @@ async def refresh(request: Request, response: Response, session: SessionDeps):
     if db_refresh_token.expires_at < now:
         raise HTTPException(status_code=HTTP_401_UNAUTHORIZED, detail="Token Expired")
 
+    # Revoke old refresh token
     db_refresh_token.revoked = True
-
     session.add(db_refresh_token)
 
-    # generate new refresh and access token
-    new_access_token = create_access_token(user_public_id)
-    new_refresh_token = create_refresh_token(user_public_id)
+    try:
+        # generate new refresh and access token
+        new_access_token = create_access_token(user_public_id)
+        new_refresh_token = create_refresh_token(user_public_id)
 
-    # write new refresh token to db
-    new_token_hash = hash_token(new_refresh_token)
+        # write new refresh token to db
+        new_token_hash = hash_token(new_refresh_token)
 
-    new_db_token = RefreshTokens(
-        token_hash=new_token_hash,
-        user_id=db_refresh_token.user_id,
-        created_at=datetime.now(timezone.utc),
-        expires_at=datetime.now(timezone.utc)
-        + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS),
-    )
+        new_db_token = RefreshTokens(
+            token_hash=new_token_hash,
+            user_id=db_refresh_token.user_id,
+            created_at=datetime.now(timezone.utc),
+            expires_at=datetime.now(timezone.utc)
+            + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS),
+        )
 
-    session.add(new_db_token)
-    session.commit()
-    session.refresh(db_refresh_token)
+        session.add(new_db_token)
+        session.commit()
+
+    except Exception as e:
+        session.rollback()
+        logger.error(f"Error refreshing token for user {user_public_id}: {str(e)}")
+        raise HTTPException(
+            status_code=HTTP_400_BAD_REQUEST, detail="Failed to refresh token"
+        )
 
     response.headers["X-Access-Token"] = new_access_token
     # set cookies
@@ -181,10 +186,10 @@ async def logout(
         raise HTTPException(
             status_code=HTTP_400_BAD_REQUEST, detail="Refresh token from db not found"
         )
-    if not db_refresh_token.revoked:
-        db_refresh_token.revoked = True
+    db_refresh_token.revoked = True
 
     session.add(db_refresh_token)
+    session.commit()
 
     logger.info(f"User Action: {current_user_id} logged out")
     return {"success": True, "message": "Logged out successfully"}

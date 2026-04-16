@@ -18,15 +18,28 @@ class AuthService:
         self.db = db
 
     def authenticate_user(self, username: str, password: str, email: str):
+        """
+        Authenticate an existing user.
+        Validates username, password, and that the email matches the one in the database.
+        """
+        # Always hash a dummy password to prevent timing attacks
+        hash_password(settings.DUMMY_PASSWORD)
+
         user = self.db.exec(select(Users).where(Users.username == username)).first()
         if not user:
-            hash_password(settings.DUMMY_PASSWORD)
             return None
         if not verify_password(password, user.password):
             return None
+        # Verify that the provided email matches the stored email
+        if user.email != email:
+            return None
         return user
 
-    def validate_user_credentials(self, username: str, password: str, email: str):
+    def validate_for_signin(self, username: str, password: str, email: str):
+        """
+        Validate credentials for user sign-up/registration.
+        Checks that username, password, and email are valid and email is not already taken.
+        """
         if len(username) > 25 or len(username) == "":
             raise HTTPException(
                 status_code=HTTP_401_UNAUTHORIZED,
@@ -44,7 +57,30 @@ class AuthService:
                 detail="email is not available",
             )
 
-        if not re.match("^[a-zA-Z0>9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$", email):
+        if not re.match("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$", email):
+            raise HTTPException(
+                status_code=HTTP_401_UNAUTHORIZED,
+                detail="Not an email",
+            )
+        return True
+
+    def validate_for_login(self, username: str, password: str, email: str):
+        """
+        Validate credentials for user login.
+        Checks that username, password, and email are valid format.
+        """
+        if len(username) > 25 or len(username) == "":
+            raise HTTPException(
+                status_code=HTTP_401_UNAUTHORIZED,
+                detail="Username is more than 25 characters or is an empty string",
+            )
+        if password.strip() == "":
+            raise HTTPException(
+                status_code=HTTP_401_UNAUTHORIZED,
+                detail="Password is an empty string",
+            )
+
+        if not re.match("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$", email):
             raise HTTPException(
                 status_code=HTTP_401_UNAUTHORIZED,
                 detail="Not an email",
@@ -52,6 +88,7 @@ class AuthService:
         return True
 
     def signin_user(self, username: str, password: str, email: str):
+        """Create a new user account (registration)."""
         hashed_password = hash_password(password)
         new_user = Users(username=username, password=hashed_password, email=email)
         self.db.add(new_user)
@@ -60,6 +97,7 @@ class AuthService:
         return new_user
 
     def write_refresh_token_to_db(self, refresh_token: str, user: Users):
+        """Store hashed refresh token in the database."""
         token_hash = hash_token(refresh_token)
         new_token = RefreshTokens(
             token_hash=token_hash,
@@ -75,12 +113,13 @@ class AuthService:
 def get_current_user(
     request: Request, credentials: HTTPAuthorizationCredentials = Depends(security)
 ):
+    """Extract and validate the current user from access token."""
     token = credentials.credentials
     if not token:
         raise HTTPException(
             status_code=HTTP_400_BAD_REQUEST, detail="No access token found"
         )
-    payload = decode_token(token)
+    payload = decode_token(token, token_type="access")
     user_public_id = payload["sub"]
 
     request.state.__setattr__("public_id", user_public_id)
