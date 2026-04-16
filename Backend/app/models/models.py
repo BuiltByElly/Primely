@@ -11,10 +11,10 @@ class RefreshTokens(SQLModel, table=True):
     revoked: bool = False
     token_hash: str
     created_at: datetime = Field(
-        sa_column=Column(DateTime(timezone=True), nullable=False)
+        sa_column=Column(DateTime(timezone=False), nullable=False)
     )
     expires_at: datetime = Field(
-        sa_column=Column(DateTime(timezone=True), nullable=False)
+        sa_column=Column(DateTime(timezone=False), nullable=False)
     )
 
 

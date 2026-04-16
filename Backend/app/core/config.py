@@ -10,15 +10,14 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_DAYS: int
     ENV: str
 
+    model_config = {"env_file": ".env"}  # ← Just use a dict
+
     @property
     def is_prod(self):
         """
         Check if the environment is in production
         """
         return self.ENV == "production"
-
-    class Config:
-        env_file = ".env"
 
 
 settings = Settings()

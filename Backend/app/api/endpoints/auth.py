@@ -3,7 +3,10 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sqlmodel import select
-from starlette.status import HTTP_400_BAD_REQUEST, HTTP_401_UNAUTHORIZED
+from starlette.status import (
+    HTTP_400_BAD_REQUEST,
+    HTTP_401_UNAUTHORIZED,
+)
 
 from app.api.dependencies import SessionDeps
 from app.core.config import settings
@@ -24,10 +27,10 @@ auth_router = APIRouter(prefix="/auth", tags=["Authentication"])
 @auth_router.post("/register")
 async def register(response: Response, form_data: LoginSchema, session: SessionDeps):
     auth_service = AuthService(session)
-    if auth_service.validate_for_signin(
+    if auth_service.validate_for_register(
         form_data.username, form_data.password, form_data.email
     ):
-        user = auth_service.signin_user(
+        user = auth_service.register_user(
             form_data.username, form_data.password, form_data.email
         )
 
@@ -99,7 +102,7 @@ async def refresh(request: Request, response: Response, session: SessionDeps):
     user_public_id = payload["sub"]
     token_hash = hash_token(refresh_token)
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now()
 
     # validate refresh token exists in database
     db_refresh_token = session.exec(
@@ -184,7 +187,7 @@ async def logout(
 
     if not db_refresh_token:
         raise HTTPException(
-            status_code=HTTP_400_BAD_REQUEST, detail="Refresh token from db not found"
+            status_code=HTTP_400_BAD_REQUEST, detail="Refresh token not found"
         )
     db_refresh_token.revoked = True
 

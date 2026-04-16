@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 from fastapi import Depends, HTTPException, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlmodel import Session, select
-from starlette.status import HTTP_400_BAD_REQUEST, HTTP_401_UNAUTHORIZED
+from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_403_FORBIDDEN
 
 from app.core.config import settings
 from app.core.security import decode_token, hash_password, hash_token, verify_password
@@ -35,12 +35,12 @@ class AuthService:
             return None
         return user
 
-    def validate_for_signin(self, username: str, password: str, email: str):
+    def validate_for_register(self, username: str, password: str, email: str):
         """
         Validate credentials for user sign-up/registration.
         Checks that username, password, and email are valid and email is not already taken.
         """
-        if len(username) > 25 or len(username) == "":
+        if len(username) > 25 or len(username) == 0:
             raise HTTPException(
                 status_code=HTTP_401_UNAUTHORIZED,
                 detail="Username is more than 25 characters or is an empty string",
@@ -54,7 +54,7 @@ class AuthService:
         if self.db.exec(select(Users).where(Users.email == email)).first():
             raise HTTPException(
                 status_code=HTTP_401_UNAUTHORIZED,
-                detail="email is not available",
+                detail="Email is not available",
             )
 
         if not re.match("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$", email):
@@ -69,7 +69,7 @@ class AuthService:
         Validate credentials for user login.
         Checks that username, password, and email are valid format.
         """
-        if len(username) > 25 or len(username) == "":
+        if len(username) > 25 or len(username) == 0:
             raise HTTPException(
                 status_code=HTTP_401_UNAUTHORIZED,
                 detail="Username is more than 25 characters or is an empty string",
@@ -87,7 +87,7 @@ class AuthService:
             )
         return True
 
-    def signin_user(self, username: str, password: str, email: str):
+    def register_user(self, username: str, password: str, email: str):
         """Create a new user account (registration)."""
         hashed_password = hash_password(password)
         new_user = Users(username=username, password=hashed_password, email=email)
@@ -117,10 +117,10 @@ def get_current_user(
     token = credentials.credentials
     if not token:
         raise HTTPException(
-            status_code=HTTP_400_BAD_REQUEST, detail="No access token found"
+            status_code=HTTP_403_FORBIDDEN, detail="No access token found"
         )
     payload = decode_token(token, token_type="access")
-    user_public_id = payload["sub"]
+    user_public_id: str = payload["sub"]
 
     request.state.__setattr__("public_id", user_public_id)
 
