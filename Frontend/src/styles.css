@@ -1,33 +1,128 @@
 @import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap");
-@import "tailwindcss";
-@plugin "@tailwindcss/typography";
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
 
-@theme {
-  --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
+@font-face {
+  font-family: "Primely";
+  src: url("../fonts/primely.ttf") format("truetype");
+  font-display: swap;
 }
 
+@import "tailwindcss";
+
+@theme {
+  --font-manrope: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-inter: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-primely: "Primely", ui-sans-serif, system-ui, sans-serif;
+
+  /* Primary */
+  --color-primary: var(--primary);
+  --color-primary-alternate: var(--primary-alternate);
+
+  /* Accent */
+  --color-accent: var(--accent);
+
+  /* Background & Foreground */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  /* Neutrals */
+  --color-neutral: var(--neutral);
+  --color-neutral-light: var(--neutral-light);
+  --color-neutral-lighter: var(--neutral-lighter);
+}
+
+/* Dark Theme (Default) */
 :root {
-  --sea-ink: #173a40;
-  --sea-ink-soft: #416166;
-  --lagoon: #4fb8b2;
-  --lagoon-deep: #328f97;
-  --palm: #2f6a4a;
-  --sand: #e7f0e8;
-  --foam: #f3faf5;
-  --surface: rgba(255, 255, 255, 0.74);
-  --surface-strong: rgba(255, 255, 255, 0.9);
-  --line: rgba(23, 58, 64, 0.14);
-  --inset-glint: rgba(255, 255, 255, 0.82);
-  --kicker: rgba(47, 106, 74, 0.9);
-  --bg-base: #e7f3ec;
-  --header-bg: rgba(251, 255, 248, 0.84);
-  --chip-bg: rgba(255, 255, 255, 0.8);
-  --chip-line: rgba(47, 106, 74, 0.18);
-  --link-bg-hover: rgba(255, 255, 255, 0.9);
-  --hero-a: rgba(79, 184, 178, 0.36);
-  --hero-b: rgba(47, 106, 74, 0.2);
+  /* Primary */
+  --primary: #f9a70f;
+  --primary-alternate: #fabc2aff;
+
+  /* Accent */
+  --accent: #a96feb;
+
+  /* Background & Foreground */
+  --background: #02020a;
+  --foreground: #f1f5f2;
+
+  /* Neutrals */
+  --neutral: #6f686dff;
+  --neutral-light: #a39fa3ff;
+  --neutral-lighter: #2a2a28ff;
+}
+
+/* Light Theme */
+.light {
+  /* Primary */
+  --primary: #f9a70f;
+  --primary-alternate: #fabc2aff;
+
+  /* Accent */
+  --accent: #741dd7;
+
+  /* Background & Foreground */
+  --background: #02020a;
+  --foreground: #f1f5f2;
+
+  /* Neutrals */
+  --neutral: #6f686dff;
+  --neutral-light: #a39fa3ff;
+  --neutral-lighter: #2a2a28ff;
 }
 
 * {
   box-sizing: border-box;
+}
+
+@layer base {
+  body {
+    @apply bg-background text-foreground;
+    width: 100%;
+    min-height: 100vh;
+    font-family: var(--font-satoshi), sans-serif;
+    scroll-behavior: smooth;
+  }
+  /*::selection {
+    background-color: var(--accent);
+    color: var(--primary);
+  }*/
+
+  @media (width >=412px
+
+ /* 640px 40*/) {
+    html {
+      font-size: 1.1rem;
+    }
+  }
+
+  @media (width >=48rem
+
+ /* 768px */) {
+    html {
+      font-size: 1.75rem;
+    }
+  }
+
+  @media (width >=64rem
+
+ /* 1024px */) {
+    html {
+      font-size: 2.25rem;
+    }
+  }
+
+  @media (width >=80rem
+
+ /* 1280px */) {
+    html {
+      font-size: 1.3vw;
+    }
+  }
+
+  @media (width >=1440px
+
+ /* 1440px */) {
+    html {
+      font-size: 1.5vw;
+    }
+  }
 }

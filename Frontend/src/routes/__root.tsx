@@ -36,7 +36,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <head>
         <HeadContent />
       </head>
-      <body className="font-sans antialiased wrap-anywhere">
+      <body className="font-inter antialiased">
         <Header />
         {children}
         <Footer />
