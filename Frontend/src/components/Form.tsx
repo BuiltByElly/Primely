@@ -1,6 +1,21 @@
 import { Icon } from "@iconify/react";
+import { useMutation } from "@tanstack/react-query";
 
 const Form = () => {
+  const apiUrl = import.meta.env.VITE_API_URL as string;
+
+  const mutation = useMutation({
+    mutationFn: (loginData: FormData) => {
+      return fetch(apiUrl + "/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(loginData),
+      });
+    },
+  });
+
   return (
     <div>
       <h1 className="text-center text-[3rem] mt-12 font-primely leading-0 text-primary">
@@ -10,7 +25,13 @@ const Form = () => {
         Welcome back!
       </h1>
       <div className="flex items-center justify-center min-h-screen top-0 left-0 w-full z-10">
-        <form className="flex flex-col gap-2.5 p-7.5 w-full max-w-112.5 rounded-[20px] bg-background/80 backdrop-blur-xl">
+        <form
+          className="flex flex-col gap-2.5 p-7.5 w-full max-w-112.5 rounded-[20px] bg-background/80 backdrop-blur-xl"
+          onSubmit={(e) => {
+            e.preventDefault();
+            mutation.mutate(new FormData(e.target as HTMLFormElement));
+          }}
+        >
           {/* Username Section */}
           <section className="mb-2">
             <div className="flex flex-col mb-2">
@@ -27,6 +48,7 @@ const Form = () => {
                 type="text"
                 placeholder="Enter your username"
                 className="flex-1 focus:outline-none bg-transparent"
+                required
               />
             </div>
           </section>
@@ -47,6 +69,7 @@ const Form = () => {
                 type="email"
                 placeholder="Enter your email"
                 className="flex-1 focus:outline-none bg-transparent"
+                required
               />
             </div>
           </section>
@@ -67,6 +90,7 @@ const Form = () => {
                 placeholder="Enter your Password"
                 className="flex-1 focus:outline-none bg-transparent"
                 type="password"
+                required
               />
             </div>
           </section>
@@ -91,9 +115,12 @@ const Form = () => {
             </span>
           </div>
 
-          {/* Sign In Button */}
-          <button className="mt-5 mb-2.5 bg-primary text-foreground font-medium border-none text-base rounded-[10px] h-12 w-full cursor-pointer hover:bg-primary-alternate transition-colors">
-            Sign In
+          {/* Log In Button */}
+          <button
+            className="mt-5 mb-2.5 bg-primary text-foreground font-medium border-none text-base rounded-[10px] h-12 w-full cursor-pointer hover:bg-primary-alternate transition-colors"
+            type="submit"
+          >
+            Log In
           </button>
 
           {/* Sign Up Link */}

@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 # from fastapi_offline import FastAPIOffline
 from app.api.api import api_router
@@ -18,6 +19,16 @@ async def lifespan(app: FastAPI):
 
 # main app
 app = FastAPI(lifespan=lifespan, title="URL Shortner")
+
+# CORS middleware for frontend development
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 app.add_middleware(ReqAndResLoggingMiddleware)
 
 logger.info("Startup: DB and server up and running")
