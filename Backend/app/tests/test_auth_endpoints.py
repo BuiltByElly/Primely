@@ -36,7 +36,7 @@ class TestRegisterEndpoint:
             },
         )
 
-        assert response.status_code == 401
+        assert response.status_code == 400
         assert "Username" in response.json()["detail"]
 
     def test_register_username_too_long(self, client):
@@ -50,7 +50,7 @@ class TestRegisterEndpoint:
             },
         )
 
-        assert response.status_code == 401
+        assert response.status_code == 400
         assert "25 characters" in response.json()["detail"]
 
     def test_register_empty_password(self, client):
@@ -60,7 +60,7 @@ class TestRegisterEndpoint:
             json={"username": "testuser", "password": "", "email": "test@example.com"},
         )
 
-        assert response.status_code == 401
+        assert response.status_code == 400
         assert "Password" in response.json()["detail"]
 
     def test_register_invalid_email(self, client):
@@ -74,7 +74,7 @@ class TestRegisterEndpoint:
             },
         )
 
-        assert response.status_code == 401
+        assert response.status_code == 400
         assert "Not an email" in response.json()["detail"]
 
     def test_register_email_already_exists(self, client, test_user):
@@ -88,7 +88,7 @@ class TestRegisterEndpoint:
             },
         )
 
-        assert response.status_code == 401
+        assert response.status_code == 400
         assert "not available" in response.json()["detail"]
 
     def test_register_creates_user_in_database(self, client, session):
@@ -115,7 +115,7 @@ class TestLoginEndpoint:
         """Test successful login with existing user"""
         response = client.post(
             "/api/auth/login",
-            json={"username": "elly", "password": "123456", "email": "e@g.com"},
+            json={"password": "123456", "email": "e@g.com"},
         )
 
         assert response.status_code == 200
@@ -128,7 +128,7 @@ class TestLoginEndpoint:
         """Test login with wrong password"""
         response = client.post(
             "/api/auth/login",
-            json={"username": "elly", "password": "wrongpassword", "email": "e@g.com"},
+            json={"password": "wrongpassword", "email": "e@g.com"},
         )
 
         assert response.status_code == 401
@@ -139,7 +139,6 @@ class TestLoginEndpoint:
         response = client.post(
             "/api/auth/login",
             json={
-                "username": "elly",
                 "password": "123456",
                 "email": "wrong@example.com",
             },
@@ -153,7 +152,6 @@ class TestLoginEndpoint:
         response = client.post(
             "/api/auth/login",
             json={
-                "username": "nonexistent",
                 "password": "password123",
                 "email": "nonexistent@example.com",
             },
@@ -162,25 +160,11 @@ class TestLoginEndpoint:
         assert response.status_code == 401
         assert "Invalid credentials" in response.json()["detail"]
 
-    def test_login_empty_username(self, client):
-        """Test login with empty username"""
-        response = client.post(
-            "/api/auth/login",
-            json={
-                "username": "",
-                "password": "password123",
-                "email": "test@example.com",
-            },
-        )
-
-        assert response.status_code == 401
-        assert "Username" in response.json()["detail"]
-
     def test_login_empty_password(self, client):
         """Test login with empty password"""
         response = client.post(
             "/api/auth/login",
-            json={"username": "testuser", "password": "", "email": "test@example.com"},
+            json={"password": "", "email": "test@example.com"},
         )
 
         assert response.status_code == 401
@@ -191,7 +175,6 @@ class TestLoginEndpoint:
         response = client.post(
             "/api/auth/login",
             json={
-                "username": "testuser",
                 "password": "password123",
                 "email": "not-an-email",
             },
@@ -207,7 +190,7 @@ class TestLoginEndpoint:
 
         response = client.post(
             "/api/auth/login",
-            json={"username": "elly", "password": "123456", "email": "e@g.com"},
+            json={"password": "123456", "email": "e@g.com"},
         )
 
         assert response.status_code == 200
