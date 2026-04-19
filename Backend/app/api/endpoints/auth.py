@@ -18,7 +18,7 @@ from app.core.security import (
     hash_token,
 )
 from app.models.models import RefreshTokens
-from app.schemas.schemas import LoginSchema
+from app.schemas.schemas import LoginSchema, RegisterSchema
 from app.services.authentication import AuthService, get_current_user
 
 auth_router = APIRouter(prefix="/auth", tags=["Authentication"])
@@ -26,7 +26,10 @@ auth_router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 @auth_router.post("/register")
 async def register(
-    response: Response, form_data: LoginSchema, session: SessionDeps, request: Request
+    response: Response,
+    form_data: RegisterSchema,
+    session: SessionDeps,
+    request: Request,
 ):
     auth_service = AuthService(session)
     if auth_service.validate_for_register(
@@ -38,9 +41,6 @@ async def register(
 
         access_token = create_access_token(str(user.public_id))
         refresh_token = create_refresh_token(str(user.public_id))
-
-        # write refresh token to db
-        auth_service.write_refresh_token_to_db(refresh_token, user)
 
         # set cookies
         response.set_cookie(
@@ -58,6 +58,9 @@ async def register(
                 else settings.REFRESH_TOKEN_EXPIRE_DAY
             ),
         )
+        # write refresh token to db
+        auth_service.write_refresh_token_to_db(refresh_token, user)
+
         request.state.__setattr__("public_id", str(user.public_id))
         logger.info(f"User Action: user {user.public_id} registered")
 
@@ -74,12 +77,8 @@ async def login(
 ):
     auth_service = AuthService(session)
 
-    if auth_service.validate_for_login(
-        form_data.username, form_data.password, form_data.email
-    ):
-        user = auth_service.authenticate_user(
-            form_data.username, form_data.password, form_data.email
-        )
+    if auth_service.validate_for_login(form_data.password, form_data.email):
+        user = auth_service.authenticate_user(form_data.password, form_data.email)
         if not user:
             raise HTTPException(
                 status_code=HTTP_401_UNAUTHORIZED, detail="Invalid credentials"
@@ -87,11 +86,6 @@ async def login(
         # create access and refresh token
         access_token = create_access_token(str(user.public_id))
         refresh_token = create_refresh_token(str(user.public_id), form_data.remember_me)
-
-        # write refresh token to db
-        auth_service.write_refresh_token_to_db(
-            refresh_token, user, form_data.remember_me
-        )
 
         # set cookies
         response.set_cookie(
@@ -108,6 +102,11 @@ async def login(
                 if form_data.remember_me
                 else settings.REFRESH_TOKEN_EXPIRE_DAY
             ),
+        )
+
+        # write refresh token to db
+        auth_service.write_refresh_token_to_db(
+            refresh_token, user, form_data.remember_me
         )
 
         request.state.__setattr__("public_id", str(user.public_id))

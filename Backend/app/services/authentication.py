@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 from fastapi import Depends, HTTPException, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlmodel import Session, select
-from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_403_FORBIDDEN
+from starlette.status import HTTP_400_BAD_REQUEST, HTTP_401_UNAUTHORIZED
 
 from app.core.config import settings
 from app.core.security import decode_token, hash_password, hash_token, verify_password
@@ -17,22 +17,20 @@ class AuthService:
     def __init__(self, db: Session) -> None:
         self.db = db
 
-    def authenticate_user(self, username: str, password: str, email: str):
+    def authenticate_user(self, password: str, email: str):
         """
         Authenticate an existing user.
-        Validates username, password, and that the email matches the one in the database.
+        Validates password, and that the email matches the one in the database.
         """
         # Always hash a dummy password to prevent timing attacks
         hash_password(settings.DUMMY_PASSWORD)
 
-        user = self.db.exec(select(Users).where(Users.username == username)).first()
+        user = self.db.exec(select(Users).where(Users.email == email)).first()
         if not user:
             return None
         if not verify_password(password, user.password):
             return None
-        # Verify that the provided email matches the stored email
-        if user.email != email:
-            return None
+
         return user
 
     def validate_for_register(self, username: str, password: str, email: str):
@@ -42,38 +40,33 @@ class AuthService:
         """
         if len(username) > 25 or len(username) == 0:
             raise HTTPException(
-                status_code=HTTP_401_UNAUTHORIZED,
+                status_code=HTTP_400_BAD_REQUEST,
                 detail="Username is more than 25 characters or is an empty string",
             )
         if password.strip() == "":
             raise HTTPException(
-                status_code=HTTP_401_UNAUTHORIZED,
+                status_code=HTTP_400_BAD_REQUEST,
                 detail="Password is an empty string",
             )
 
         if self.db.exec(select(Users).where(Users.email == email)).first():
             raise HTTPException(
-                status_code=HTTP_401_UNAUTHORIZED,
+                status_code=HTTP_400_BAD_REQUEST,
                 detail="Email is not available",
             )
 
         if not re.match("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$", email):
             raise HTTPException(
-                status_code=HTTP_401_UNAUTHORIZED,
+                status_code=HTTP_400_BAD_REQUEST,
                 detail="Not an email",
             )
         return True
 
-    def validate_for_login(self, username: str, password: str, email: str):
+    def validate_for_login(self, password: str, email: str):
         """
         Validate credentials for user login.
         Checks that username, password, and email are valid format.
         """
-        if len(username) > 25 or len(username) == 0:
-            raise HTTPException(
-                status_code=HTTP_401_UNAUTHORIZED,
-                detail="Username is more than 25 characters or is an empty string",
-            )
         if password.strip() == "":
             raise HTTPException(
                 status_code=HTTP_401_UNAUTHORIZED,

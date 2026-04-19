@@ -3,9 +3,30 @@ import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import Spinner from "./Spinner";
 import FormInput from "./FormInput";
-import { useAuthStore } from "#/store/AuthStore";
+import { useAuthStore, useRememberMeStore } from "#/store/AuthStore";
 
-const FORM_FIELDS = [
+const LOGIN_FIELDS = [
+  {
+    name: "email",
+    label: "Email",
+    type: "email",
+    placeholder: "Enter your email",
+    icon: "dashicons:email-alt",
+    iconWidth: 26,
+    iconHeight: 26,
+  },
+  {
+    name: "password",
+    label: "Password",
+    type: "password",
+    placeholder: "Enter your password",
+    icon: "carbon:password",
+    iconWidth: 26,
+    iconHeight: 26,
+  },
+] as const;
+
+const REGISTER_FIELDS = [
   {
     name: "username",
     label: "Username",
@@ -35,29 +56,52 @@ const FORM_FIELDS = [
   },
 ] as const;
 
-const INITIAL_STATE: LoginData = {
-  username: "",
-  email: "",
-  password: "",
-  rememberMe: false,
-};
+const Form = ({ type }: { type: "login" | "register" }) => {
+  const isLogin = type === "login";
+  const fields = isLogin ? LOGIN_FIELDS : REGISTER_FIELDS;
 
-const Form = () => {
-  const apiUrl = "/api";
-  const [formData, setFormData] = useState<LoginData>(INITIAL_STATE);
+  const initialState = {
+    username: "",
+    email: "",
+    password: "",
+    rememberMe: false,
+  };
+
+  const [formData, setFormData] = useState<{
+    username: string;
+    email: string;
+    password: string;
+    rememberMe: boolean;
+  }>(initialState);
   const [error, setError] = useState<string | null>(null);
 
   const setAccessToken = useAuthStore((s) => s.setAccessToken);
-  const setRememberMe = useAuthStore((s) => s.setRememberMe);
+  const setRememberMe = useRememberMeStore((s) => s.setRememberMe);
 
   const navigate = useNavigate();
 
+  const endpoint = isLogin ? "/api/auth/login" : "/api/auth/register";
+
   const mutation = useMutation({
-    mutationFn: async (data: LoginData) => {
-      const response = await fetch(`${apiUrl}/auth/login`, {
+    mutationFn: async (data: typeof formData) => {
+      // Build payload based on type
+      const payload = isLogin
+        ? {
+            email: data.email,
+            password: data.password,
+            remember_me: data.rememberMe,
+          }
+        : {
+            username: data.username,
+            email: data.email,
+            password: data.password,
+            remember_me: true,
+          };
+
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify(payload),
       });
       const json = await response.json();
       if (!response.ok)
@@ -66,9 +110,11 @@ const Form = () => {
     },
 
     onSuccess: (data) => {
-      setFormData(INITIAL_STATE);
+      setFormData(initialState);
       setAccessToken(data["access_token"]);
-      setRememberMe(formData.rememberMe);
+      if (isLogin) {
+        setRememberMe(formData.rememberMe);
+      }
       navigate({ to: "/me" });
     },
 
@@ -78,7 +124,6 @@ const Form = () => {
       } else {
         setError(err instanceof Error ? err.message : String(err));
       }
-      throw err;
     },
   });
 
@@ -87,9 +132,17 @@ const Form = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleRememberMeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData((prev) => ({ ...prev, rememberMe: e.target.checked }));
+  };
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     mutation.mutate(formData);
+  };
+
+  const handleToggleMode = () => {
+    navigate({ to: isLogin ? "/register" : "/login" });
   };
 
   const isLoading = mutation.isPending;
@@ -103,8 +156,21 @@ const Form = () => {
 
   const getButtonText = () => {
     if (isLoading) return null;
-    if (isSuccess) return "Logged In Successfully";
-    return "Log In";
+    if (isSuccess)
+      return isLogin ? "Logged In Successfully" : "Registered Successfully";
+    return isLogin ? "Log In" : "Register";
+  };
+
+  const getHeaderText = () => {
+    return isLogin ? "Welcome back!" : "Create your account";
+  };
+
+  const getToggleText = () => {
+    return isLogin ? "Don't have an account?" : "Already have an account?";
+  };
+
+  const getToggleButtonText = () => {
+    return isLogin ? "Register" : "Log In";
   };
 
   return (
@@ -114,7 +180,7 @@ const Form = () => {
         Primely
       </h1>
       <h1 className="text-center text-[3rem] mt-6 font-manrope">
-        Welcome back!
+        {getHeaderText()}
       </h1>
 
       {/* Form */}
@@ -124,7 +190,7 @@ const Form = () => {
       >
         {/* Form Fields */}
         <div className="space-y-4">
-          {FORM_FIELDS.map((field) => (
+          {fields.map((field) => (
             <FormInput
               key={field.name}
               label={field.label}
@@ -134,28 +200,26 @@ const Form = () => {
               icon={field.icon}
               iconWidth={field.iconWidth}
               iconHeight={field.iconHeight}
-              value={
-                formData[field.name as keyof Omit<LoginData, "rememberMe">]
-              }
+              value={formData[field.name as keyof typeof formData] as string}
               onChange={handleChange}
             />
           ))}
         </div>
 
-        {/* Remember Me & Forgot Password */}
-        <div className="flex items-center justify-between py-3">
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={formData.rememberMe}
-              onChange={(e) =>
-                setFormData({ ...formData, rememberMe: e.target.checked })
-              }
-              className="appearance-none w-5 h-5 border-2 border-foreground rounded cursor-pointer checked:bg-primary checked:border-primary focus:outline-none transition-all duration-200"
-            />
-            <span className="text-sm text-foreground">Remember me</span>
-          </label>
-        </div>
+        {/* Remember Me (only for login) */}
+        {isLogin && (
+          <div className="flex items-center justify-between py-3">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={formData.rememberMe}
+                onChange={handleRememberMeChange}
+                className="appearance-none w-5 h-5 border-2 border-foreground rounded cursor-pointer checked:bg-primary checked:border-primary focus:outline-none transition-all duration-200"
+              />
+              <span className="text-sm text-foreground">Remember me</span>
+            </label>
+          </div>
+        )}
 
         {/* Error Message */}
         {isError && (
@@ -184,14 +248,15 @@ const Form = () => {
           )}
         </button>
 
-        {/* Sign Up Link */}
+        {/* Toggle Mode Link */}
         <p className="text-center text-sm text-foreground mt-4">
-          Don't have an account?{" "}
+          {getToggleText()}{" "}
           <button
             type="button"
+            onClick={handleToggleMode}
             className="text-accent font-semibold hover:underline transition-colors"
           >
-            Sign Up
+            {getToggleButtonText()}
           </button>
         </p>
       </form>
