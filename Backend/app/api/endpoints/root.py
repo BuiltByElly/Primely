@@ -13,7 +13,7 @@ from app.services.authentication import get_current_user
 root_router = APIRouter(tags=["User"])
 
 
-@root_router.get("/", response_model=UserResponse)
+@root_router.get("/me", response_model=UserResponse)
 async def me(
     current_user_public_id: Annotated[str, Depends(get_current_user)],
     session: SessionDeps,

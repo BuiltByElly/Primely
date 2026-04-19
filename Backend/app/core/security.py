@@ -36,12 +36,16 @@ def create_access_token(user_id: str):
     )
 
 
-def create_refresh_token(user_id: str):
+def create_refresh_token(user_id: str, remember_me: bool = False):
     return jwt.encode(
         {
             "sub": user_id,
             "exp": datetime.now(timezone.utc)
-            + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS),
+            + timedelta(
+                days=settings.REFRESH_TOKEN_EXPIRE_DAYS
+                if remember_me
+                else settings.REFRESH_TOKEN_EXPIRE_DAY
+            ),
             "type": "refresh",
         },
         settings.SECRET_KEY,

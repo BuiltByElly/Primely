@@ -8,9 +8,10 @@ class Settings(BaseSettings):
     ALGORITHM: str
     ACCESS_TOKEN_EXPIRE_MINUTES: int
     REFRESH_TOKEN_EXPIRE_DAYS: int
+    REFRESH_TOKEN_EXPIRE_DAY: int
     ENV: str
 
-    model_config = {"env_file": ".env"}  # ← Just use a dict
+    model_config = {"env_file": ".env"}
 
     @property
     def is_prod(self):

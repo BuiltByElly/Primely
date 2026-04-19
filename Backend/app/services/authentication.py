@@ -96,7 +96,9 @@ class AuthService:
         self.db.refresh(new_user)
         return new_user
 
-    def write_refresh_token_to_db(self, refresh_token: str, user: Users):
+    def write_refresh_token_to_db(
+        self, refresh_token: str, user: Users, remember_me: bool = False
+    ):
         """Store hashed refresh token in the database."""
         token_hash = hash_token(refresh_token)
         new_token = RefreshTokens(
@@ -104,7 +106,11 @@ class AuthService:
             user_id=user.id or 0,
             created_at=datetime.now(timezone.utc),
             expires_at=datetime.now(timezone.utc)
-            + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS),
+            + timedelta(
+                days=settings.REFRESH_TOKEN_EXPIRE_DAYS
+                if remember_me
+                else settings.REFRESH_TOKEN_EXPIRE_DAY
+            ),
         )
         self.db.add(new_token)
         self.db.commit()
@@ -117,7 +123,7 @@ def get_current_user(
     token = credentials.credentials
     if not token:
         raise HTTPException(
-            status_code=HTTP_403_FORBIDDEN, detail="No access token found"
+            status_code=HTTP_401_UNAUTHORIZED, detail="No access token found"
         )
     payload = decode_token(token, token_type="access")
     user_public_id: str = payload["sub"]

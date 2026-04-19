@@ -33,3 +33,5 @@ Thumbs.db
 
 # --- General env files at root ---
 .env
+postman/
+.postman/

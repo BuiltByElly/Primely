@@ -22,7 +22,7 @@ class TestRegisterEndpoint:
         assert response.status_code == 200
         assert response.json()["success"] is True
         assert response.json()["message"] == "Registered successfully"
-        assert "X-Access-Token" in response.headers
+        assert "access_token" in response.json()
         assert response.cookies.get("refresh_token") is not None
 
     def test_register_empty_username(self, client):
@@ -120,8 +120,8 @@ class TestLoginEndpoint:
 
         assert response.status_code == 200
         assert response.json()["success"] is True
-        assert response.json()["message"] == "Logged in"
-        assert "X-Access-Token" in response.headers
+        assert response.json()["message"] == "Logged in successfully"
+        assert "access_token" in response.json()
         assert response.cookies.get("refresh_token") is not None
 
     def test_login_wrong_password(self, client, test_user):
@@ -238,7 +238,7 @@ class TestRefreshEndpoint:
 
         assert response.status_code == 200
         assert response.json()["success"] is True
-        assert "X-Access-Token" in response.headers
+        assert "access_token" in response.json()
         assert response.cookies.get("refresh_token") is not None
 
     def test_refresh_no_token(self, client):

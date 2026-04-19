@@ -1,137 +1,200 @@
-import { Icon } from "@iconify/react";
 import { useMutation } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
+import Spinner from "./Spinner";
+import FormInput from "./FormInput";
+import { useAuthStore } from "#/store/AuthStore";
+
+const FORM_FIELDS = [
+  {
+    name: "username",
+    label: "Username",
+    type: "text",
+    placeholder: "Enter your username",
+    icon: "tabler:user-filled",
+    iconWidth: 24,
+    iconHeight: 24,
+  },
+  {
+    name: "email",
+    label: "Email",
+    type: "email",
+    placeholder: "Enter your email",
+    icon: "dashicons:email-alt",
+    iconWidth: 26,
+    iconHeight: 26,
+  },
+  {
+    name: "password",
+    label: "Password",
+    type: "password",
+    placeholder: "Enter your password",
+    icon: "carbon:password",
+    iconWidth: 26,
+    iconHeight: 26,
+  },
+] as const;
+
+const INITIAL_STATE: LoginData = {
+  username: "",
+  email: "",
+  password: "",
+  rememberMe: false,
+};
 
 const Form = () => {
-  const apiUrl = import.meta.env.VITE_API_URL as string;
+  const apiUrl = "/api";
+  const [formData, setFormData] = useState<LoginData>(INITIAL_STATE);
+  const [error, setError] = useState<string | null>(null);
+
+  const setAccessToken = useAuthStore((s) => s.setAccessToken);
+  const setRememberMe = useAuthStore((s) => s.setRememberMe);
+
+  const navigate = useNavigate();
 
   const mutation = useMutation({
-    mutationFn: (loginData: FormData) => {
-      return fetch(apiUrl + "/login", {
+    mutationFn: async (data: LoginData) => {
+      const response = await fetch(`${apiUrl}/auth/login`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(loginData),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
       });
+      const json = await response.json();
+      if (!response.ok)
+        throw new Error(`HTTP ${response.status} ${json.detail}`);
+      return json;
+    },
+
+    onSuccess: (data) => {
+      setFormData(INITIAL_STATE);
+      setAccessToken(data["access_token"]);
+      setRememberMe(formData.rememberMe);
+      navigate({ to: "/me" });
+    },
+
+    onError: (err) => {
+      if (err instanceof TypeError) {
+        setError("Network error (failed to fetch)");
+      } else {
+        setError(err instanceof Error ? err.message : String(err));
+      }
+      throw err;
     },
   });
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    mutation.mutate(formData);
+  };
+
+  const isLoading = mutation.isPending;
+  const isSuccess = mutation.isSuccess;
+  const isError = mutation.isError;
+
+  const getButtonColor = () => {
+    if (isSuccess) return "bg-green-500";
+    return "bg-primary hover:bg-primary-alternate";
+  };
+
+  const getButtonText = () => {
+    if (isLoading) return null;
+    if (isSuccess) return "Logged In Successfully";
+    return "Log In";
+  };
+
   return (
-    <div>
+    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-background px-4">
+      {/* Header */}
       <h1 className="text-center text-[3rem] mt-12 font-primely leading-0 text-primary">
         Primely
       </h1>
       <h1 className="text-center text-[3rem] mt-6 font-manrope">
         Welcome back!
       </h1>
-      <div className="flex items-center justify-center min-h-screen top-0 left-0 w-full z-10">
-        <form
-          className="flex flex-col gap-2.5 p-7.5 w-full max-w-112.5 rounded-[20px] bg-background/80 backdrop-blur-xl"
-          onSubmit={(e) => {
-            e.preventDefault();
-            mutation.mutate(new FormData(e.target as HTMLFormElement));
-          }}
-        >
-          {/* Username Section */}
-          <section className="mb-2">
-            <div className="flex flex-col mb-2">
-              <label className="text-foreground text-lg">Username</label>
-            </div>
-            <div className="flex items-center gap-4 border border-foreground rounded-lg p-3 transition-colors duration-200 focus-within:border-primary bg-neutral-lighter">
-              <Icon
-                icon="tabler:user-filled"
-                width="24"
-                height="24"
-                style={{ color: "var(--foreground)" }}
-              />
-              <input
-                type="text"
-                placeholder="Enter your username"
-                className="flex-1 focus:outline-none bg-transparent"
-                required
-              />
-            </div>
-          </section>
 
-          {/* Email Section */}
-          <section className="mb-2">
-            <div className="flex flex-col mb-2">
-              <label className="text-foreground text-lg">Email</label>
-            </div>
-            <div className="flex items-center gap-4 border border-foreground rounded-lg p-3 transition-colors duration-200 focus-within:border-primary bg-neutral-lighter">
-              <Icon
-                icon="dashicons:email-alt"
-                width="26"
-                height="26"
-                style={{ color: "var(--foreground)" }}
-              />
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="flex-1 focus:outline-none bg-transparent"
-                required
-              />
-            </div>
-          </section>
+      {/* Form */}
+      <form
+        className="w-full max-w-112.5 rounded-[20px] bg-background/80 backdrop-blur-xl p-7.5 space-y-4"
+        onSubmit={handleSubmit}
+      >
+        {/* Form Fields */}
+        <div className="space-y-4">
+          {FORM_FIELDS.map((field) => (
+            <FormInput
+              key={field.name}
+              label={field.label}
+              name={field.name}
+              type={field.type}
+              placeholder={field.placeholder}
+              icon={field.icon}
+              iconWidth={field.iconWidth}
+              iconHeight={field.iconHeight}
+              value={
+                formData[field.name as keyof Omit<LoginData, "rememberMe">]
+              }
+              onChange={handleChange}
+            />
+          ))}
+        </div>
 
-          {/* Password Section */}
-          <section>
-            <div className="flex flex-col mb-2">
-              <label className="text-foreground text-lg">Password</label>
-            </div>
-            <div className="flex items-center gap-4 border border-foreground rounded-lg p-3 transition-colors duration-200 focus-within:border-primary bg-neutral-lighter">
-              <Icon
-                icon="carbon:password"
-                width="26"
-                height="26"
-                style={{ color: "var(--foreground)" }}
-              />
-              <input
-                placeholder="Enter your Password"
-                className="flex-1 focus:outline-none bg-transparent"
-                type="password"
-                required
-              />
-            </div>
-          </section>
+        {/* Remember Me & Forgot Password */}
+        <div className="flex items-center justify-between py-3">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={formData.rememberMe}
+              onChange={(e) =>
+                setFormData({ ...formData, rememberMe: e.target.checked })
+              }
+              className="appearance-none w-5 h-5 border-2 border-foreground rounded cursor-pointer checked:bg-primary checked:border-primary focus:outline-none transition-all duration-200"
+            />
+            <span className="text-sm text-foreground">Remember me</span>
+          </label>
+        </div>
 
-          {/* Remember Me & Forgot Password */}
-          <div className="flex flex-row items-center gap-2.5 justify-between">
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                id="remember-me"
-                className="appearance-none w-5 h-5 border-2 border-foreground rounded cursor-pointer checked:bg-primary checked:border-primary focus:outline-none transition-all duration-200"
-              />
-              <label
-                htmlFor="remember-me"
-                className="text-sm text-foreground font-normal cursor-pointer"
-              >
-                Remember me
-              </label>
-            </div>
-            <span className="text-sm text-accent font-medium cursor-pointer hover:underline">
-              Forgot password?
-            </span>
+        {/* Error Message */}
+        {isError && (
+          <div className="p-3 bg-red-500/20 border border-red-500 rounded-lg text-red-400 text-sm">
+            {error}
           </div>
+        )}
 
-          {/* Log In Button */}
+        {/* Submit Button */}
+        <button
+          type="submit"
+          disabled={isLoading || isSuccess}
+          className={`w-full h-12 rounded-[10px] font-semibold text-foreground transition-all duration-200 ${getButtonColor()} disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-6`}
+        >
+          {isLoading ? (
+            <>
+              <Spinner
+                size="sm"
+                outerClassName="bg-primary"
+                innerClassName="border-t-foreground"
+                thickness={7}
+              />
+            </>
+          ) : (
+            getButtonText()
+          )}
+        </button>
+
+        {/* Sign Up Link */}
+        <p className="text-center text-sm text-foreground mt-4">
+          Don't have an account?{" "}
           <button
-            className="mt-5 mb-2.5 bg-primary text-foreground font-medium border-none text-base rounded-[10px] h-12 w-full cursor-pointer hover:bg-primary-alternate transition-colors"
-            type="submit"
+            type="button"
+            className="text-accent font-semibold hover:underline transition-colors"
           >
-            Log In
+            Sign Up
           </button>
-
-          {/* Sign Up Link */}
-          <p className="text-center text-foreground text-sm my-1">
-            Don't have an account?{" "}
-            <span className="text-accent font-medium cursor-pointer hover:underline">
-              Sign Up
-            </span>
-          </p>
-        </form>
-      </div>
+        </p>
+      </form>
     </div>
   );
 };
