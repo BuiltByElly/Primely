@@ -4,6 +4,9 @@ import { useState } from "react";
 import Spinner from "./Spinner";
 import FormInput from "./FormInput";
 import { useAuthStore, useRememberMeStore } from "#/store/AuthStore";
+import { Email } from "#/icons/email";
+import { Password } from "#/icons/password";
+import { User } from "#/icons/user";
 
 const LOGIN_FIELDS = [
   {
@@ -11,18 +14,14 @@ const LOGIN_FIELDS = [
     label: "Email",
     type: "email",
     placeholder: "Enter your email",
-    icon: "dashicons:email-alt",
-    iconWidth: 26,
-    iconHeight: 26,
+    icon: Email,
   },
   {
     name: "password",
     label: "Password",
     type: "password",
     placeholder: "Enter your password",
-    icon: "carbon:password",
-    iconWidth: 26,
-    iconHeight: 26,
+    icon: Password,
   },
 ] as const;
 
@@ -32,27 +31,21 @@ const REGISTER_FIELDS = [
     label: "Username",
     type: "text",
     placeholder: "Enter your username",
-    icon: "tabler:user-filled",
-    iconWidth: 24,
-    iconHeight: 24,
+    icon: User,
   },
   {
     name: "email",
     label: "Email",
     type: "email",
     placeholder: "Enter your email",
-    icon: "dashicons:email-alt",
-    iconWidth: 26,
-    iconHeight: 26,
+    icon: Email,
   },
   {
     name: "password",
     label: "Password",
     type: "password",
     placeholder: "Enter your password",
-    icon: "carbon:password",
-    iconWidth: 26,
-    iconHeight: 26,
+    icon: Password,
   },
 ] as const;
 
@@ -176,16 +169,18 @@ const Form = ({ type }: { type: "login" | "register" }) => {
   return (
     <div className="min-h-screen w-full flex flex-col items-center justify-center bg-background px-4">
       {/* Header */}
-      <h1 className="text-center text-[3rem] mt-12 font-primely leading-0 text-primary">
-        Primely
-      </h1>
-      <h1 className="text-center text-[3rem] mt-6 font-manrope">
-        {getHeaderText()}
-      </h1>
+      <div className="mb-12 xl:mb-0">
+        <h1 className="text-center text-[3rem] mt-12 font-primely leading-0 text-primary">
+          Primely
+        </h1>
+        <h1 className="text-center text-[2rem] mt-6 font-manrope xl:text-[3rem]">
+          {getHeaderText()}
+        </h1>
+      </div>
 
       {/* Form */}
       <form
-        className="w-full max-w-112.5 rounded-[20px] bg-background/80 backdrop-blur-xl p-7.5 space-y-4"
+        className="w-full xl:max-w-112.5 rounded-[20px] bg-background/80 backdrop-blur-xl xl:p-7.5 space-y-4"
         onSubmit={handleSubmit}
       >
         {/* Form Fields */}
