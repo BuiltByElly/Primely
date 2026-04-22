@@ -10,6 +10,9 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_DAYS: int
     REFRESH_TOKEN_EXPIRE_DAY: int
     ENV: str
+    GOOGLE_SAFE_BROWSING_API_KEY: str
+    BROKER_URL: str
+    BACKEND_URL: str
 
     model_config = {"env_file": ".env"}
 

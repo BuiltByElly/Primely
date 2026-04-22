@@ -135,7 +135,7 @@ async def refresh(
     user_public_id = payload["sub"]
     token_hash = hash_token(refresh_token)
 
-    now = datetime.now()
+    now = datetime.now(timezone.utc)
 
     # validate refresh token exists in database
     db_refresh_token = session.exec(

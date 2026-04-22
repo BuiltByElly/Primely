@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from sqlmodel import select
 
@@ -200,16 +200,21 @@ class TestLoginEndpoint:
 
 
 class TestRefreshEndpoint:
-    def test_refresh_success(self, client, test_user, session):
+    def test_refresh_success(self, client, test_user, session, test_user_credentials):
         """Test successful token refresh"""
         refresh_token = create_refresh_token(str(test_user.public_id))
         token_hash = hash_token(refresh_token)
 
-        expires_at = datetime.now() + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+        expires_at = datetime.now(timezone.utc) + timedelta(
+            days=settings.REFRESH_TOKEN_EXPIRE_DAYS
+            if test_user_credentials["remember_me"]
+            else settings.REFRESH_TOKEN_EXPIRE_DAY
+        )
+
         db_token = RefreshTokens(
             token_hash=token_hash,
             user_id=test_user.id or 0,
-            created_at=datetime.now(),
+            created_at=datetime.now(timezone.utc),
             expires_at=expires_at,
             revoked=False,
         )
@@ -243,11 +248,13 @@ class TestRefreshEndpoint:
         refresh_token = create_refresh_token(str(test_user.public_id))
         token_hash = hash_token(refresh_token)
 
-        expires_at = datetime.now() + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+        expires_at = datetime.now(timezone.utc) + timedelta(
+            days=settings.REFRESH_TOKEN_EXPIRE_DAYS
+        )
         db_token = RefreshTokens(
             token_hash=token_hash,
             user_id=test_user.id or 0,
-            created_at=datetime.now(),
+            created_at=datetime.now(timezone.utc),
             expires_at=expires_at,
             revoked=True,
         )
@@ -267,11 +274,13 @@ class TestLogoutEndpoint:
         refresh_token = create_refresh_token(str(test_user.public_id))
         token_hash = hash_token(refresh_token)
 
-        expires_at = datetime.now() + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+        expires_at = datetime.now(timezone.utc) + timedelta(
+            days=settings.REFRESH_TOKEN_EXPIRE_DAYS
+        )
         db_token = RefreshTokens(
             token_hash=token_hash,
             user_id=test_user.id or 0,
-            created_at=datetime.now(),
+            created_at=datetime.now(timezone.utc),
             expires_at=expires_at,
             revoked=False,
         )
@@ -311,11 +320,13 @@ class TestLogoutEndpoint:
         refresh_token = create_refresh_token(str(test_user.public_id))
         token_hash = hash_token(refresh_token)
 
-        expires_at = datetime.now() + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+        expires_at = datetime.now(timezone.utc) + timedelta(
+            days=settings.REFRESH_TOKEN_EXPIRE_DAYS
+        )
         db_token = RefreshTokens(
             token_hash=token_hash,
             user_id=test_user.id or 0,
-            created_at=datetime.now(),
+            created_at=datetime.now(timezone.utc),
             expires_at=expires_at,
             revoked=False,
         )
