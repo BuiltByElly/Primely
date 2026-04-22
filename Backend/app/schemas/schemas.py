@@ -1,9 +1,7 @@
 from datetime import datetime
-from typing import Literal
+from typing import Annotated, Literal
 
-from pydantic import BaseModel, HttpUrl
-
-from app.models.models import ClickEvents
+from pydantic import BaseModel, Field, HttpUrl
 
 
 class LoginSchema(BaseModel):
@@ -28,7 +26,7 @@ class UserResponse(BaseModel):
 class LinkCreate(BaseModel):
     name: str
     original_link: HttpUrl
-    lifetime: int = 30
+    lifetime: Annotated[int, Field(le=30)] = 30
 
 
 class LinkResponse(BaseModel):
@@ -37,6 +35,5 @@ class LinkResponse(BaseModel):
     original_link: str
     short_code: str
     status: Literal["scanning", "active", "malicious", "expired", "failed"]
-    clicks: list[ClickEvents] | None = None
     created_at: datetime
     expires_at: datetime

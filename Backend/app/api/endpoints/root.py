@@ -1,11 +1,12 @@
 from datetime import datetime, timedelta, timezone
-from typing import Annotated
+from typing import Annotated, List
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import func
 from sqlmodel import select
 from starlette.status import (
+    HTTP_200_OK,
     HTTP_201_CREATED,
     HTTP_401_UNAUTHORIZED,
     HTTP_403_FORBIDDEN,
@@ -14,7 +15,7 @@ from starlette.status import (
 from app.api.dependencies import SessionDeps
 from app.core.logging import logger
 from app.models.models import Links, Users
-from app.schemas.schemas import LinkCreate, UserResponse
+from app.schemas.schemas import LinkCreate, LinkResponse, UserResponse
 from app.services.authentication import get_current_user
 from app.tasks.scan_links_task import scan_links_task
 
@@ -58,9 +59,8 @@ async def post_link(
             user_id=user_id,
             name=Link.name,
             original_link=str(Link.original_link),
-            expires_at=datetime.now(timezone.utc) + timedelta(days=Link.lifetime),
+            expires_at=datetime.now(timezone.utc) + timedelta(days=abs(Link.lifetime)),
         )  # status scanning by default
-
         session.add(new_link)
         session.commit()
 
@@ -85,3 +85,20 @@ async def post_link(
         "status_code": HTTP_201_CREATED,
         "message": "Link added successfully",
     }
+
+
+@root_router.get("/me/links", response_model=List[LinkResponse])
+async def get_links(
+    current_user_public_id: Annotated[str, Depends(get_current_user)],
+    session: SessionDeps,
+):
+    """Get all links for the current user"""
+    user = session.exec(
+        select(Users).where(Users.public_id == UUID(current_user_public_id))
+    ).first()
+    if user:
+        links = session.exec(select(Links).where(Links.user_id == user.id)).all()
+        return [link.model_dump() for link in links]
+    raise HTTPException(
+        status_code=HTTP_401_UNAUTHORIZED, detail="User not found, Go back to login"
+    )

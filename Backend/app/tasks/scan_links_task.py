@@ -14,7 +14,7 @@ from app.utils.scan_links import scan_links
 def scan_links_task(self):
     with Session(engine) as session:
         unscanned_links = session.exec(
-            select(Links).where(Links.status == "scanning")
+            select(Links).where(Links.status == "scanning").limit(500)
         ).all()
         if not unscanned_links:
             return
