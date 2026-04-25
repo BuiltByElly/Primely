@@ -12,7 +12,9 @@ dependencies = [
     "psycopg[binary]>=3.3.3",
     "pwdlib[argon2]>=0.3.0",
     "pyjwt>=2.11.0",
+    "slowapi>=0.1.9",
     "sqlmodel>=0.0.37",
+    "user-agents>=2.2.0",
 ]
 
 [dependency-groups]

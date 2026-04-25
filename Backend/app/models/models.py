@@ -55,7 +55,10 @@ class ClickEvents(SQLModel, table=True):
     id: int | None = Field(primary_key=True, default=None)
     link_id: int | None = Field(foreign_key="links.id")
     link: Links = Relationship(back_populates="clicks")
-    timestamp: datetime
+    timestamp: datetime = Field(
+        sa_column=Column(DateTime(timezone=True), nullable=False),
+        default_factory=lambda: datetime.now(timezone.utc),
+    )
     ip_address: str
     country: str
-    user_agent: str
+    browser: str

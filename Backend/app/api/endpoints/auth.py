@@ -2,6 +2,8 @@ from datetime import datetime, timedelta, timezone
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from sqlmodel import select
 from starlette.status import (
     HTTP_400_BAD_REQUEST,
@@ -22,9 +24,11 @@ from app.schemas.schemas import LoginSchema, RegisterSchema
 from app.services.authentication import AuthService, get_current_user
 
 auth_router = APIRouter(prefix="/auth", tags=["Authentication"])
+limiter = Limiter(key_func=get_remote_address)
 
 
 @auth_router.post("/register")
+@limiter.limit("5/minute")
 async def register(
     response: Response,
     form_data: RegisterSchema,
@@ -72,6 +76,7 @@ async def register(
 
 
 @auth_router.post("/login")
+@limiter.limit("5/minute")
 async def login(
     response: Response, form_data: LoginSchema, session: SessionDeps, request: Request
 ):
@@ -120,6 +125,7 @@ async def login(
 
 
 @auth_router.post("/refresh")
+@limiter.limit("10/minute")
 async def refresh(
     request: Request,
     response: Response,
@@ -213,6 +219,7 @@ async def refresh(
 
 
 @auth_router.delete("/logout")
+@limiter.limit("2/minute")
 async def logout(
     response: Response,
     request: Request,

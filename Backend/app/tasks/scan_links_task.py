@@ -1,4 +1,3 @@
-import httpx
 from sqlmodel import select
 
 from app.api.dependencies import Session
@@ -14,7 +13,10 @@ from app.utils.scan_links import scan_links
 def scan_links_task(self):
     with Session(engine) as session:
         unscanned_links = session.exec(
-            select(Links).where(Links.status == "scanning").limit(500)
+            select(Links)
+            .where(Links.status == "scanning")
+            .limit(500)
+            .with_for_update(skip_locked=True)
         ).all()
         if not unscanned_links:
             return
@@ -35,11 +37,6 @@ def scan_links_task(self):
 
             session.commit()
             logger.info(f"Scanned {len(unscanned_links)} links successfully")
-
-        except httpx.HTTPError as e:
-            # Google API failed — retry the task
-            logger.warning(f"Google API failed: {e}, retrying in 60 seconds")
-            raise self.retry(exc=e, countdown=60)
 
         except Exception as e:
             # Something else failed — mark all as failed

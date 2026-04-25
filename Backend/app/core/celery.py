@@ -11,15 +11,16 @@ celery_app = Celery(
         "app.tasks.scan_links_task",
         "app.tasks.expire_links_task",
         "app.tasks.cleanup_tokens_task",
+        "app.tasks.click_event_task",
     ],
 )
-
 celery_app.conf.update(
     task_serializer="json",
     result_serializer="json",
     accept_content=["json"],
     timezone="UTC",
     enable_utc=True,
+    worker_concurrency=4,
 )
 
 
