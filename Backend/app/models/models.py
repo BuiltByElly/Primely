@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from uuid import UUID, uuid4
 
 from sqlalchemy import DateTime
@@ -11,10 +11,10 @@ class RefreshTokens(SQLModel, table=True):
     revoked: bool = False
     token_hash: str
     created_at: datetime = Field(
-        sa_column=Column(DateTime(timezone=False), nullable=False)
+        sa_column=Column(DateTime(timezone=True), nullable=False)
     )
     expires_at: datetime = Field(
-        sa_column=Column(DateTime(timezone=False), nullable=False)
+        sa_column=Column(DateTime(timezone=True), nullable=False)
     )
 
 
@@ -32,19 +32,33 @@ class Users(SQLModel, table=True):
 class Links(SQLModel, table=True):
     id: int | None = Field(primary_key=True, default=None)
     user_id: int | None = Field(foreign_key="users.id")
+    name: str
     owner: Users = Relationship(back_populates="links")
     original_link: str
-    shortened_link: str
+    short_code: str | None = Field(
+        default=None, unique=True, index=True
+    )  # None until scanned
+    status: str = Field(
+        default="scanning", index=True
+    )  # "scanning", "active", "malicious", "expired", "failed"
     clicks: list[ClickEvents] = Relationship(back_populates="link")
-    created_at: datetime
-    expires_at: datetime
+    created_at: datetime = Field(
+        sa_column=Column(DateTime(timezone=True), nullable=False),
+        default_factory=lambda: datetime.now(timezone.utc),
+    )
+    expires_at: datetime = Field(
+        sa_column=Column(DateTime(timezone=True), nullable=False),
+    )
 
 
 class ClickEvents(SQLModel, table=True):
     id: int | None = Field(primary_key=True, default=None)
     link_id: int | None = Field(foreign_key="links.id")
     link: Links = Relationship(back_populates="clicks")
-    timestamp: datetime
+    timestamp: datetime = Field(
+        sa_column=Column(DateTime(timezone=True), nullable=False),
+        default_factory=lambda: datetime.now(timezone.utc),
+    )
     ip_address: str
     country: str
-    user_agent: str
+    browser: str

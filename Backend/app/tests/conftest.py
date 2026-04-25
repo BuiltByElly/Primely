@@ -45,7 +45,12 @@ def client(session):
 # Test data for testing
 @pytest.fixture
 def test_user_credentials():
-    return {"username": "elly", "password": "123456", "email": "e@g.com"}
+    return {
+        "username": "elly",
+        "password": "123456",
+        "email": "e@g.com",
+        "remember_me": False,
+    }
 
 
 @pytest.fixture

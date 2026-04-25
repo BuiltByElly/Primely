@@ -2,6 +2,8 @@ from datetime import datetime, timedelta, timezone
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from sqlmodel import select
 from starlette.status import (
     HTTP_400_BAD_REQUEST,
@@ -18,14 +20,21 @@ from app.core.security import (
     hash_token,
 )
 from app.models.models import RefreshTokens
-from app.schemas.schemas import LoginSchema
+from app.schemas.schemas import LoginSchema, RegisterSchema
 from app.services.authentication import AuthService, get_current_user
 
 auth_router = APIRouter(prefix="/auth", tags=["Authentication"])
+limiter = Limiter(key_func=get_remote_address)
 
 
 @auth_router.post("/register")
-async def register(response: Response, form_data: LoginSchema, session: SessionDeps):
+@limiter.limit("5/minute")
+async def register(
+    response: Response,
+    form_data: RegisterSchema,
+    session: SessionDeps,
+    request: Request,
+):
     auth_service = AuthService(session)
     if auth_service.validate_for_register(
         form_data.username, form_data.password, form_data.email
@@ -37,9 +46,6 @@ async def register(response: Response, form_data: LoginSchema, session: SessionD
         access_token = create_access_token(str(user.public_id))
         refresh_token = create_refresh_token(str(user.public_id))
 
-        # write refresh token to db
-        auth_service.write_refresh_token_to_db(refresh_token, user)
-
         # set cookies
         response.set_cookie(
             "refresh_token",
@@ -47,34 +53,44 @@ async def register(response: Response, form_data: LoginSchema, session: SessionD
             httponly=True,
             secure=settings.is_prod,
             samesite="none" if settings.is_prod else "lax",
+            max_age=60
+            * 60
+            * 24
+            * (
+                settings.REFRESH_TOKEN_EXPIRE_DAYS
+                if form_data.remember_me
+                else settings.REFRESH_TOKEN_EXPIRE_DAY
+            ),
         )
-        response.headers["X-Access-Token"] = access_token
+        # write refresh token to db
+        auth_service.write_refresh_token_to_db(refresh_token, user)
 
+        request.state.__setattr__("public_id", str(user.public_id))
         logger.info(f"User Action: user {user.public_id} registered")
 
-        return {"success": True, "message": "Registered successfully"}
+        return {
+            "success": True,
+            "message": "Registered successfully",
+            "access_token": access_token,
+        }
 
 
 @auth_router.post("/login")
-async def login(response: Response, form_data: LoginSchema, session: SessionDeps):
+@limiter.limit("5/minute")
+async def login(
+    response: Response, form_data: LoginSchema, session: SessionDeps, request: Request
+):
     auth_service = AuthService(session)
 
-    if auth_service.validate_for_login(
-        form_data.username, form_data.password, form_data.email
-    ):
-        user = auth_service.authenticate_user(
-            form_data.username, form_data.password, form_data.email
-        )
+    if auth_service.validate_for_login(form_data.password, form_data.email):
+        user = auth_service.authenticate_user(form_data.password, form_data.email)
         if not user:
             raise HTTPException(
                 status_code=HTTP_401_UNAUTHORIZED, detail="Invalid credentials"
             )
         # create access and refresh token
         access_token = create_access_token(str(user.public_id))
-        refresh_token = create_refresh_token(str(user.public_id))
-
-        # write refresh token to db
-        auth_service.write_refresh_token_to_db(refresh_token, user)
+        refresh_token = create_refresh_token(str(user.public_id), form_data.remember_me)
 
         # set cookies
         response.set_cookie(
@@ -83,16 +99,39 @@ async def login(response: Response, form_data: LoginSchema, session: SessionDeps
             httponly=True,
             secure=settings.is_prod,
             samesite="none" if settings.is_prod else "lax",
-            max_age=60 * 60 * 24 * 6,
+            max_age=60
+            * 60
+            * 24
+            * (
+                settings.REFRESH_TOKEN_EXPIRE_DAYS
+                if form_data.remember_me
+                else settings.REFRESH_TOKEN_EXPIRE_DAY
+            ),
         )
-        response.headers["X-Access-Token"] = access_token
+
+        # write refresh token to db
+        auth_service.write_refresh_token_to_db(
+            refresh_token, user, form_data.remember_me
+        )
+
+        request.state.__setattr__("public_id", str(user.public_id))
         logger.info(f"User Action: user {user.public_id} logged in")
 
-        return {"success": True, "message": "Logged in"}
+        return {
+            "success": True,
+            "message": "Logged in successfully",
+            "access_token": access_token,
+        }
 
 
 @auth_router.post("/refresh")
-async def refresh(request: Request, response: Response, session: SessionDeps):
+@limiter.limit("10/minute")
+async def refresh(
+    request: Request,
+    response: Response,
+    session: SessionDeps,
+    remember_me: bool = False,
+):
     refresh_token = request.cookies.get("refresh_token")
     if not refresh_token:
         raise HTTPException(status_code=HTTP_401_UNAUTHORIZED, detail="Not authorized")
@@ -102,7 +141,7 @@ async def refresh(request: Request, response: Response, session: SessionDeps):
     user_public_id = payload["sub"]
     token_hash = hash_token(refresh_token)
 
-    now = datetime.now()
+    now = datetime.now(timezone.utc)
 
     # validate refresh token exists in database
     db_refresh_token = session.exec(
@@ -121,11 +160,12 @@ async def refresh(request: Request, response: Response, session: SessionDeps):
     # Revoke old refresh token
     db_refresh_token.revoked = True
     session.add(db_refresh_token)
+    session.commit()
 
     try:
         # generate new refresh and access token
         new_access_token = create_access_token(user_public_id)
-        new_refresh_token = create_refresh_token(user_public_id)
+        new_refresh_token = create_refresh_token(user_public_id, remember_me)
 
         # write new refresh token to db
         new_token_hash = hash_token(new_refresh_token)
@@ -135,7 +175,11 @@ async def refresh(request: Request, response: Response, session: SessionDeps):
             user_id=db_refresh_token.user_id,
             created_at=datetime.now(timezone.utc),
             expires_at=datetime.now(timezone.utc)
-            + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS),
+            + timedelta(
+                days=settings.REFRESH_TOKEN_EXPIRE_DAYS
+                if remember_me
+                else settings.REFRESH_TOKEN_EXPIRE_DAY
+            ),
         )
 
         session.add(new_db_token)
@@ -148,7 +192,6 @@ async def refresh(request: Request, response: Response, session: SessionDeps):
             status_code=HTTP_400_BAD_REQUEST, detail="Failed to refresh token"
         )
 
-    response.headers["X-Access-Token"] = new_access_token
     # set cookies
     response.set_cookie(
         "refresh_token",
@@ -156,15 +199,27 @@ async def refresh(request: Request, response: Response, session: SessionDeps):
         httponly=True,
         secure=settings.is_prod,
         samesite="none" if settings.is_prod else "lax",
-        max_age=60 * 60 * 24 * 6,
+        max_age=60
+        * 60
+        * 24
+        * (
+            settings.REFRESH_TOKEN_EXPIRE_DAYS
+            if remember_me
+            else settings.REFRESH_TOKEN_EXPIRE_DAY
+        ),
     )
 
     logger.info(f"User Action: user {user_public_id} refreshed token")
 
-    return {"success": True, "message": "Token refreshed"}
+    return {
+        "success": True,
+        "message": "Token refreshed",
+        "access_token": new_access_token,
+    }
 
 
 @auth_router.delete("/logout")
+@limiter.limit("2/minute")
 async def logout(
     response: Response,
     request: Request,
@@ -172,7 +227,11 @@ async def logout(
     session: SessionDeps,
 ):
     refresh_token = request.cookies.get("refresh_token")
-    response.delete_cookie("refresh_token")
+    response.delete_cookie(
+        "refresh_token",
+        secure=settings.is_prod,
+        samesite="none" if settings.is_prod else "lax",
+    )
 
     if not refresh_token:
         raise HTTPException(

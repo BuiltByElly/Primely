@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from sqlmodel import select
 
@@ -22,7 +22,7 @@ class TestRegisterEndpoint:
         assert response.status_code == 200
         assert response.json()["success"] is True
         assert response.json()["message"] == "Registered successfully"
-        assert "X-Access-Token" in response.headers
+        assert "access_token" in response.json()
         assert response.cookies.get("refresh_token") is not None
 
     def test_register_empty_username(self, client):
@@ -36,7 +36,7 @@ class TestRegisterEndpoint:
             },
         )
 
-        assert response.status_code == 401
+        assert response.status_code == 400
         assert "Username" in response.json()["detail"]
 
     def test_register_username_too_long(self, client):
@@ -50,7 +50,7 @@ class TestRegisterEndpoint:
             },
         )
 
-        assert response.status_code == 401
+        assert response.status_code == 400
         assert "25 characters" in response.json()["detail"]
 
     def test_register_empty_password(self, client):
@@ -60,7 +60,7 @@ class TestRegisterEndpoint:
             json={"username": "testuser", "password": "", "email": "test@example.com"},
         )
 
-        assert response.status_code == 401
+        assert response.status_code == 400
         assert "Password" in response.json()["detail"]
 
     def test_register_invalid_email(self, client):
@@ -74,7 +74,7 @@ class TestRegisterEndpoint:
             },
         )
 
-        assert response.status_code == 401
+        assert response.status_code == 400
         assert "Not an email" in response.json()["detail"]
 
     def test_register_email_already_exists(self, client, test_user):
@@ -88,7 +88,7 @@ class TestRegisterEndpoint:
             },
         )
 
-        assert response.status_code == 401
+        assert response.status_code == 400
         assert "not available" in response.json()["detail"]
 
     def test_register_creates_user_in_database(self, client, session):
@@ -115,20 +115,20 @@ class TestLoginEndpoint:
         """Test successful login with existing user"""
         response = client.post(
             "/api/auth/login",
-            json={"username": "elly", "password": "123456", "email": "e@g.com"},
+            json={"password": "123456", "email": "e@g.com"},
         )
 
         assert response.status_code == 200
         assert response.json()["success"] is True
-        assert response.json()["message"] == "Logged in"
-        assert "X-Access-Token" in response.headers
+        assert response.json()["message"] == "Logged in successfully"
+        assert "access_token" in response.json()
         assert response.cookies.get("refresh_token") is not None
 
     def test_login_wrong_password(self, client, test_user):
         """Test login with wrong password"""
         response = client.post(
             "/api/auth/login",
-            json={"username": "elly", "password": "wrongpassword", "email": "e@g.com"},
+            json={"password": "wrongpassword", "email": "e@g.com"},
         )
 
         assert response.status_code == 401
@@ -139,7 +139,6 @@ class TestLoginEndpoint:
         response = client.post(
             "/api/auth/login",
             json={
-                "username": "elly",
                 "password": "123456",
                 "email": "wrong@example.com",
             },
@@ -153,7 +152,6 @@ class TestLoginEndpoint:
         response = client.post(
             "/api/auth/login",
             json={
-                "username": "nonexistent",
                 "password": "password123",
                 "email": "nonexistent@example.com",
             },
@@ -162,25 +160,11 @@ class TestLoginEndpoint:
         assert response.status_code == 401
         assert "Invalid credentials" in response.json()["detail"]
 
-    def test_login_empty_username(self, client):
-        """Test login with empty username"""
-        response = client.post(
-            "/api/auth/login",
-            json={
-                "username": "",
-                "password": "password123",
-                "email": "test@example.com",
-            },
-        )
-
-        assert response.status_code == 401
-        assert "Username" in response.json()["detail"]
-
     def test_login_empty_password(self, client):
         """Test login with empty password"""
         response = client.post(
             "/api/auth/login",
-            json={"username": "testuser", "password": "", "email": "test@example.com"},
+            json={"password": "", "email": "test@example.com"},
         )
 
         assert response.status_code == 401
@@ -191,7 +175,6 @@ class TestLoginEndpoint:
         response = client.post(
             "/api/auth/login",
             json={
-                "username": "testuser",
                 "password": "password123",
                 "email": "not-an-email",
             },
@@ -207,7 +190,7 @@ class TestLoginEndpoint:
 
         response = client.post(
             "/api/auth/login",
-            json={"username": "elly", "password": "123456", "email": "e@g.com"},
+            json={"password": "123456", "email": "e@g.com"},
         )
 
         assert response.status_code == 200
@@ -217,16 +200,21 @@ class TestLoginEndpoint:
 
 
 class TestRefreshEndpoint:
-    def test_refresh_success(self, client, test_user, session):
+    def test_refresh_success(self, client, test_user, session, test_user_credentials):
         """Test successful token refresh"""
         refresh_token = create_refresh_token(str(test_user.public_id))
         token_hash = hash_token(refresh_token)
 
-        expires_at = datetime.now() + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+        expires_at = datetime.now(timezone.utc) + timedelta(
+            days=settings.REFRESH_TOKEN_EXPIRE_DAYS
+            if test_user_credentials["remember_me"]
+            else settings.REFRESH_TOKEN_EXPIRE_DAY
+        )
+
         db_token = RefreshTokens(
             token_hash=token_hash,
             user_id=test_user.id or 0,
-            created_at=datetime.now(),
+            created_at=datetime.now(timezone.utc),
             expires_at=expires_at,
             revoked=False,
         )
@@ -238,7 +226,7 @@ class TestRefreshEndpoint:
 
         assert response.status_code == 200
         assert response.json()["success"] is True
-        assert "X-Access-Token" in response.headers
+        assert "access_token" in response.json()
         assert response.cookies.get("refresh_token") is not None
 
     def test_refresh_no_token(self, client):
@@ -260,11 +248,13 @@ class TestRefreshEndpoint:
         refresh_token = create_refresh_token(str(test_user.public_id))
         token_hash = hash_token(refresh_token)
 
-        expires_at = datetime.now() + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+        expires_at = datetime.now(timezone.utc) + timedelta(
+            days=settings.REFRESH_TOKEN_EXPIRE_DAYS
+        )
         db_token = RefreshTokens(
             token_hash=token_hash,
             user_id=test_user.id or 0,
-            created_at=datetime.now(),
+            created_at=datetime.now(timezone.utc),
             expires_at=expires_at,
             revoked=True,
         )
@@ -284,11 +274,13 @@ class TestLogoutEndpoint:
         refresh_token = create_refresh_token(str(test_user.public_id))
         token_hash = hash_token(refresh_token)
 
-        expires_at = datetime.now() + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+        expires_at = datetime.now(timezone.utc) + timedelta(
+            days=settings.REFRESH_TOKEN_EXPIRE_DAYS
+        )
         db_token = RefreshTokens(
             token_hash=token_hash,
             user_id=test_user.id or 0,
-            created_at=datetime.now(),
+            created_at=datetime.now(timezone.utc),
             expires_at=expires_at,
             revoked=False,
         )
@@ -328,11 +320,13 @@ class TestLogoutEndpoint:
         refresh_token = create_refresh_token(str(test_user.public_id))
         token_hash = hash_token(refresh_token)
 
-        expires_at = datetime.now() + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+        expires_at = datetime.now(timezone.utc) + timedelta(
+            days=settings.REFRESH_TOKEN_EXPIRE_DAYS
+        )
         db_token = RefreshTokens(
             token_hash=token_hash,
             user_id=test_user.id or 0,
-            created_at=datetime.now(),
+            created_at=datetime.now(timezone.utc),
             expires_at=expires_at,
             revoked=False,
         )

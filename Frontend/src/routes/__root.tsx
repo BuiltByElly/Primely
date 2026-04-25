@@ -5,6 +5,8 @@ import Footer from "../components/Footer";
 import Header from "../components/Header";
 
 import appCss from "../styles.css?url";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useEffect } from "react";
 
 export const Route = createRootRoute({
   head: () => ({
@@ -31,15 +33,25 @@ export const Route = createRootRoute({
 });
 
 function RootDocument({ children }: { children: React.ReactNode }) {
+  const queryClient = new QueryClient();
+
+  useEffect(() => {
+    //@ts-ignore-next-line
+    window.__TANSTACK_QUERY_CLIENT__ = queryClient;
+  });
+
   return (
     <html lang="en">
       <head>
         <HeadContent />
       </head>
       <body className="font-inter antialiased">
-        <Header />
-        {children}
-        <Footer />
+        <QueryClientProvider client={queryClient}>
+          <Header />
+          {children}
+          <Footer />
+        </QueryClientProvider>
+
         <TanStackDevtools
           config={{
             position: "bottom-right",

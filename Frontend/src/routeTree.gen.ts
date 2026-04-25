@@ -9,12 +9,25 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as RegisterRouteImport } from './routes/register'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as MeRouteRouteImport } from './routes/me/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as MeIndexRouteImport } from './routes/me/index'
 
+const RegisterRoute = RegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MeRouteRoute = MeRouteRouteImport.update({
+  id: '/me',
+  path: '/me',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -22,40 +35,69 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MeIndexRoute = MeIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => MeRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/me': typeof MeRouteRouteWithChildren
   '/login': typeof LoginRoute
+  '/register': typeof RegisterRoute
+  '/me/': typeof MeIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/register': typeof RegisterRoute
+  '/me': typeof MeIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/me': typeof MeRouteRouteWithChildren
   '/login': typeof LoginRoute
+  '/register': typeof RegisterRoute
+  '/me/': typeof MeIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login'
+  fullPaths: '/' | '/me' | '/login' | '/register' | '/me/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login'
-  id: '__root__' | '/' | '/login'
+  to: '/' | '/login' | '/register' | '/me'
+  id: '__root__' | '/' | '/me' | '/login' | '/register' | '/me/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  MeRouteRoute: typeof MeRouteRouteWithChildren
   LoginRoute: typeof LoginRoute
+  RegisterRoute: typeof RegisterRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/register': {
+      id: '/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/me': {
+      id: '/me'
+      path: '/me'
+      fullPath: '/me'
+      preLoaderRoute: typeof MeRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -65,12 +107,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/me/': {
+      id: '/me/'
+      path: '/'
+      fullPath: '/me/'
+      preLoaderRoute: typeof MeIndexRouteImport
+      parentRoute: typeof MeRouteRoute
+    }
   }
 }
 
+interface MeRouteRouteChildren {
+  MeIndexRoute: typeof MeIndexRoute
+}
+
+const MeRouteRouteChildren: MeRouteRouteChildren = {
+  MeIndexRoute: MeIndexRoute,
+}
+
+const MeRouteRouteWithChildren =
+  MeRouteRoute._addFileChildren(MeRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  MeRouteRoute: MeRouteRouteWithChildren,
   LoginRoute: LoginRoute,
+  RegisterRoute: RegisterRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

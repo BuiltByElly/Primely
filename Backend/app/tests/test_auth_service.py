@@ -9,42 +9,20 @@ class TestAuthenticateUser:
     def test_authenticate_user_success(self, session, test_user):
         auth_service = AuthService(session)
 
-        username, password, email = (
-            "elly",
-            "123456",
-            "e@g.com",
-        )
-        user = auth_service.authenticate_user(username, password, email)
+        password, email = ("123456", "e@g.com")
+        user = auth_service.authenticate_user(password, email)
         assert user is not None
 
     def test_authenticate_user_with_wrong_email(self, session, test_user):
         auth_service = AuthService(session)
 
-        username, password = (
-            "elly",
-            "123456",
-        )
-        user = auth_service.authenticate_user(username, password, "wrong_email@g.com")
+        password = "123456"
+        user = auth_service.authenticate_user(password, "wrong_email@g.com")
         assert user is None
 
     def test_authenticate_user_with_wrong_password(self, session, test_user):
         auth_service = AuthService(session)
-
-        username, password = (
-            "elly",
-            "123789",
-        )
-        user = auth_service.authenticate_user(username, password, "e@g.com")
-        assert user is None
-
-    def test_authenticate_user_with_wrong_username(self, session, test_user):
-        auth_service = AuthService(session)
-
-        username, password = (
-            "elliot",
-            "123456",
-        )
-        user = auth_service.authenticate_user(username, password, "e@g.com")
+        user = auth_service.authenticate_user("123789", "e@g.com")
         assert user is None
 
 
@@ -68,7 +46,7 @@ class TestValidation:
                 "",
                 "2.com",
             )
-        assert exec.value.status_code == 401
+        assert exec.value.status_code == 400
 
     def test_validate_for_register_with_unavailable_email(
         self, session, test_user_credentials, test_user
@@ -81,13 +59,12 @@ class TestValidation:
                 test_user_credentials["password"],
                 test_user_credentials["email"],
             )
-        assert exec.value.status_code == 401
+        assert exec.value.status_code == 400
 
     def test_validate_for_login_with_success(self, session, test_user_credentials):
         auth_service = AuthService(session)
 
         result = auth_service.validate_for_login(
-            test_user_credentials["username"],
             test_user_credentials["password"],
             test_user_credentials["email"],
         )
@@ -98,7 +75,6 @@ class TestValidation:
 
         with pytest.raises(HTTPException) as exec:
             auth_service.validate_for_login(
-                "",
                 "",
                 "2.com",
             )
