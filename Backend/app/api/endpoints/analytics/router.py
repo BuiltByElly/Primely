@@ -7,7 +7,7 @@ from sqlmodel import select
 from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_404_NOT_FOUND
 
 from app.api.dependencies import SessionDeps
-from app.models.models import ClickEvents, Links, Users
+from app.models.models import Links, Users
 from app.schemas.schemas import LinkAnalyticsResponse, LinksAnalyticsResponse
 from app.services.authentication import get_current_user
 
@@ -38,17 +38,17 @@ async def get_links_analytics(
             status_code=HTTP_401_UNAUTHORIZED, detail="User not found, Go back to login"
         )
 
-    base_query = (
-        select(ClickEvents)
-        .select_from(ClickEvents)
-        .join(Links)
-        .where(Links.user_id == user.id)
-    )
+    if user.id is None:
+        return {
+            "clicks_over_time": [],
+            "clicks_by_country": [],
+            "clicks_by_browser": [],
+        }
 
     return {
-        "clicks_over_time": build_clicks_over_time(session, base_query),
-        "clicks_by_country": build_clicks_by_country(session, base_query),
-        "clicks_by_browser": build_clicks_by_browser(session, base_query),
+        "clicks_over_time": build_clicks_over_time(session, user.id),
+        "clicks_by_country": build_clicks_by_country(session, user.id),
+        "clicks_by_browser": build_clicks_by_browser(session, user.id),
     }
 
 
@@ -77,11 +77,17 @@ async def get_link_analytics(
     if not link:
         raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail="Link not found")
 
-    base_query = select(ClickEvents).where(ClickEvents.link_id == link.id)
+    if link.id is None:
+        return {
+            "link_id": link_id,
+            "clicks_over_time": [],
+            "clicks_by_country": [],
+            "clicks_by_browser": [],
+        }
 
     return {
         "link_id": link.id,
-        "clicks_over_time": build_clicks_over_time(session, base_query),
-        "clicks_by_country": build_clicks_by_country(session, base_query),
-        "clicks_by_browser": build_clicks_by_browser(session, base_query),
+        "clicks_over_time": build_clicks_over_time(session, link.id, by_link=True),
+        "clicks_by_country": build_clicks_by_country(session, link.id, by_link=True),
+        "clicks_by_browser": build_clicks_by_browser(session, link.id, by_link=True),
     }

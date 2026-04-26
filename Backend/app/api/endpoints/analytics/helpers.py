@@ -1,5 +1,3 @@
-from datetime import date
-
 from sqlalchemy import func
 from sqlmodel import Session, select
 
@@ -11,31 +9,30 @@ from app.schemas.schemas import (
 )
 
 
-def normalize_analytics_date(row_date) -> date:
-    if isinstance(row_date, date):
+def normalize_analytics_date(row_date):
+    if hasattr(row_date, "isoformat"):
         return row_date
-    return date.fromisoformat(row_date)
-
-
-def get_user_links_clicks_base_query(session: Session, user_id: int):
-    return (
-        select(ClickEvents)
-        .select_from(ClickEvents)
-        .join(Links)
-        .where(Links.user_id == user_id)
-    )
-
-
-def get_link_clicks_base_query(link_id: int):
-    return select(ClickEvents).where(ClickEvents.link_id == link_id)
+    return row_date
 
 
 def build_clicks_over_time(
-    session: Session,
-    base_query,
-) -> list[ClicksOverTimeEntry]:
+    session: Session, owner_id: int | None, by_link: bool = False
+):
+    statement = select(
+        func.date(ClickEvents.timestamp),
+        func.count(),
+    ).select_from(ClickEvents)
+
+    if owner_id is None:
+        return []
+
+    if by_link:
+        statement = statement.where(ClickEvents.link_id == owner_id)
+    else:
+        statement = statement.join(Links).where(Links.user_id == owner_id)
+
     rows = session.exec(
-        base_query.group_by(func.date(ClickEvents.timestamp)).order_by(
+        statement.group_by(func.date(ClickEvents.timestamp)).order_by(
             func.date(ClickEvents.timestamp)
         )
     ).all()
@@ -47,11 +44,23 @@ def build_clicks_over_time(
 
 
 def build_clicks_by_country(
-    session: Session,
-    base_query,
-) -> list[ClicksByCountryEntry]:
+    session: Session, owner_id: int | None, by_link: bool = False
+):
+    statement = select(
+        ClickEvents.country,
+        func.count(),
+    ).select_from(ClickEvents)
+
+    if owner_id is None:
+        return []
+
+    if by_link:
+        statement = statement.where(ClickEvents.link_id == owner_id)
+    else:
+        statement = statement.join(Links).where(Links.user_id == owner_id)
+
     rows = session.exec(
-        base_query.group_by(ClickEvents.country).order_by(func.count().desc())
+        statement.group_by(ClickEvents.country).order_by(func.count().desc())
     ).all()
 
     return [
@@ -60,11 +69,23 @@ def build_clicks_by_country(
 
 
 def build_clicks_by_browser(
-    session: Session,
-    base_query,
-) -> list[ClicksByBrowserEntry]:
+    session: Session, owner_id: int | None, by_link: bool = False
+):
+    statement = select(
+        ClickEvents.browser,
+        func.count(),
+    ).select_from(ClickEvents)
+
+    if owner_id is None:
+        return []
+
+    if by_link:
+        statement = statement.where(ClickEvents.link_id == owner_id)
+    else:
+        statement = statement.join(Links).where(Links.user_id == owner_id)
+
     rows = session.exec(
-        base_query.group_by(ClickEvents.browser).order_by(func.count().desc())
+        statement.group_by(ClickEvents.browser).order_by(func.count().desc())
     ).all()
 
     return [
