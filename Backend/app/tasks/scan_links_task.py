@@ -1,7 +1,8 @@
+from datetime import datetime, timezone
+
 from sqlmodel import select
 
 from app.api.dependencies import Session
-from app.core.celery import celery_app
 from app.core.database import engine
 from app.core.logging import logger
 from app.models.models import Links
@@ -9,8 +10,7 @@ from app.utils.generate_short_code import generate_unique_short_code
 from app.utils.scan_links import scan_links
 
 
-@celery_app.task(bind=True, max_retries=3)
-def scan_links_task(self):
+def scan_links_task():
     with Session(engine) as session:
         unscanned_links = session.exec(
             select(Links)
@@ -29,12 +29,14 @@ def scan_links_task(self):
                 if link.original_link in malicious_links:
                     link.status = "malicious"
                 else:
-                    link.short_code = generate_unique_short_code(
-                        session, link.original_link, link.id
-                    )
-
-                    link.status = "active"
-
+                    if link.short_code is None:
+                        link.short_code = generate_unique_short_code(
+                            session, link.original_link, link.id
+                        )
+                    elif link.expires_at < datetime.now(timezone.utc):
+                        link.status = "expired"
+                    else:
+                        link.status = "active"
             session.commit()
             logger.info(f"Scanned {len(unscanned_links)} links successfully")
 

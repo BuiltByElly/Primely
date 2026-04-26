@@ -1,22 +1,19 @@
 import httpx
 from sqlmodel import Session
 
-from app.core.celery import celery_app
 from app.core.database import engine
 from app.core.logging import logger
 from app.models.models import ClickEvents
 from app.utils.extract_browser import extract_browser
 
 
-@celery_app.task(rate_limit="40/m")
-def click_event_task(link_id, timestamp, ip, browser):
+def click_event_task(link_id, ip, browser):
     try:
         country = (
             httpx.get(f"http://ip-api.com/json/{ip}?fields=57345")
             .json()
             .get("country", "Unknown")
         )
-
         with Session(engine) as session:
             session.add(
                 ClickEvents(
