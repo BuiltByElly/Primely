@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from sqlmodel import select
+from sqlmodel import or_, select
 
 from app.api.dependencies import Session
 from app.core.database import engine
@@ -14,7 +14,7 @@ def scan_links_task():
     with Session(engine) as session:
         unscanned_links = session.exec(
             select(Links)
-            .where(Links.status == "scanning")
+            .where(or_(Links.status == "scanning", Links.status == "failed"))
             .limit(500)
             .with_for_update(skip_locked=True)
         ).all()

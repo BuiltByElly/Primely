@@ -29,8 +29,8 @@ async def lifespan(app: FastAPI):
     scheduler.add_job(cleanup_tokens_task, CronTrigger(hour=3, minute=0))
     scheduler.start()
     init_db()
-    scheduler.shutdown()
     yield
+    scheduler.shutdown()
 
 
 limiter = Limiter(key_func=get_remote_address)  # rate limit by IP
