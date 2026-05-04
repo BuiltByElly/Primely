@@ -1,9 +1,15 @@
 @import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
+/*add an inter font*/
 
 @font-face {
   font-family: "Primely";
   src: url("../fonts/primely.ttf") format("truetype");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Inter";
+  src: url("../fonts/inter.otf") format("opentype");
   font-display: swap;
 }
 
@@ -16,14 +22,20 @@
 
   /* Primary */
   --color-primary: var(--primary);
-  --color-primary-alternate: var(--primary-alternate);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-soft: var(--primary-soft);
 
   /* Accent */
   --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
 
   /* Background & Foreground */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-surface: var(--surface);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-border: var(--border);
 
   /* Neutrals */
   --color-neutral: var(--neutral);
@@ -34,39 +46,51 @@
 /* Dark Theme (Default) */
 :root {
   /* Primary */
-  --primary: #f9a70f;
-  --primary-alternate: #fabc2aff;
+  --primary: #f5a524;
+  --primary-hover: #f5aa4d;
+  --primary-soft: #f5a5241a;
 
   /* Accent */
-  --accent: #a96feb;
+  --accent: #8b5cf6;
+  --accent-soft: #8b5cf6aa;
 
   /* Background & Foreground */
-  --background: #02020a;
-  --foreground: #f1f5f2;
+  --background: #0a0b12;
+  --foreground: #f5f7fb;
+  --card: #11131d;
+  --surface: #151827;
+  --surface-elevated: #1b2030;
+  --border: #23283a;
 
   /* Neutrals */
-  --neutral: #6f686dff;
-  --neutral-light: #a39fa3ff;
-  --neutral-lighter: #2a2a28ff;
+  --neutral: #8b93a7;
+  --neutral-light: #c0c7d6;
+  --neutral-lighter: #2a3040;
 }
 
 /* Light Theme */
 .light {
   /* Primary */
-  --primary: #f9a70f;
-  --primary-alternate: #fabc2aff;
+  --primary: #f5a524;
+  --primary-hover: #e89200;
+  --primary-soft: #f5a52414;
 
   /* Accent */
-  --accent: #741dd7;
+  --accent: #6d28d9;
+  --accent-soft: #6d28d914;
 
   /* Background & Foreground */
-  --background: #02020a;
-  --foreground: #f1f5f2;
+  --background: #f7f8fc;
+  --foreground: #111827;
+  --card: #ffffff;
+  --surface: #eef1f7;
+  --surface-elevated: #ffffff;
+  --border: #d8deea;
 
   /* Neutrals */
-  --neutral: #6f686dff;
-  --neutral-light: #a39fa3ff;
-  --neutral-lighter: #2a2a28ff;
+  --neutral: #667085;
+  --neutral-light: #98a2b3;
+  --neutral-lighter: #e4e7ef;
 }
 
 * {
@@ -78,13 +102,13 @@
     @apply bg-background text-foreground;
     width: 100%;
     min-height: 100vh;
-    font-family: var(--font-satoshi), sans-serif;
+    font-family: var(--font-inter), sans-serif;
     scroll-behavior: smooth;
   }
-  /*::selection {
-    background-color: var(--accent);
+  ::selection {
+    background-color: var(--primary-soft);
     color: var(--primary);
-  }*/
+  }
 
   @media (width >=412px
 
@@ -125,4 +149,35 @@
       font-size: 1.5vw;
     }
   }
+}
+
+/* Custom scrollbar */
+.scrollbar-thin {
+  scrollbar-width: thin;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scrollbar-track-transparent {
+  scrollbar-color: var(--border) transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thumb-border::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 9999px;
+}
+
+.scrollbar-thumb-border:hover::-webkit-scrollbar-thumb,
+.hover\:scrollbar-thumb-neutral-light:hover::-webkit-scrollbar-thumb {
+  background: var(--neutral-light);
+}
+
+.scrollbar-thumb-rounded-full::-webkit-scrollbar-thumb {
+  border-radius: 9999px;
 }

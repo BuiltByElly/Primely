@@ -5,12 +5,12 @@ from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.interval import IntervalTrigger
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi_offline import FastAPIOffline
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 from starlette.types import ExceptionHandler
 
-# from fastapi_offline import FastAPIOffline
 from app.api.api import api_router, redirect_router
 from app.core.database import init_db
 from app.core.logging import logger
@@ -34,7 +34,7 @@ async def lifespan(app: FastAPI):
 
 
 limiter = Limiter(key_func=get_remote_address)  # rate limit by IP
-app = FastAPI(lifespan=lifespan, title="Primely")
+app = FastAPIOffline(lifespan=lifespan, title="Primely")
 app.state.limiter = limiter
 app.add_exception_handler(
     RateLimitExceeded, cast(ExceptionHandler, _rate_limit_exceeded_handler)

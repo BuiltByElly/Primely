@@ -14,6 +14,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as MeRouteRouteImport } from './routes/me/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as MeIndexRouteImport } from './routes/me/index'
+import { Route as MeViewRouteImport } from './routes/me/view'
 
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
@@ -40,18 +41,25 @@ const MeIndexRoute = MeIndexRouteImport.update({
   path: '/',
   getParentRoute: () => MeRouteRoute,
 } as any)
+const MeViewRoute = MeViewRouteImport.update({
+  id: '/view',
+  path: '/view',
+  getParentRoute: () => MeRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/me': typeof MeRouteRouteWithChildren
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/me/view': typeof MeViewRoute
   '/me/': typeof MeIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/me/view': typeof MeViewRoute
   '/me': typeof MeIndexRoute
 }
 export interface FileRoutesById {
@@ -60,14 +68,15 @@ export interface FileRoutesById {
   '/me': typeof MeRouteRouteWithChildren
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/me/view': typeof MeViewRoute
   '/me/': typeof MeIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/me' | '/login' | '/register' | '/me/'
+  fullPaths: '/' | '/me' | '/login' | '/register' | '/me/view' | '/me/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/register' | '/me'
-  id: '__root__' | '/' | '/me' | '/login' | '/register' | '/me/'
+  to: '/' | '/login' | '/register' | '/me/view' | '/me'
+  id: '__root__' | '/' | '/me' | '/login' | '/register' | '/me/view' | '/me/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -114,14 +123,23 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MeIndexRouteImport
       parentRoute: typeof MeRouteRoute
     }
+    '/me/view': {
+      id: '/me/view'
+      path: '/view'
+      fullPath: '/me/view'
+      preLoaderRoute: typeof MeViewRouteImport
+      parentRoute: typeof MeRouteRoute
+    }
   }
 }
 
 interface MeRouteRouteChildren {
+  MeViewRoute: typeof MeViewRoute
   MeIndexRoute: typeof MeIndexRoute
 }
 
 const MeRouteRouteChildren: MeRouteRouteChildren = {
+  MeViewRoute: MeViewRoute,
   MeIndexRoute: MeIndexRoute,
 }
 

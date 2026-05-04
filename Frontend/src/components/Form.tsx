@@ -144,7 +144,7 @@ const Form = ({ type }: { type: "login" | "register" }) => {
 
   const getButtonColor = () => {
     if (isSuccess) return "bg-green-500";
-    return "bg-primary hover:bg-primary-alternate";
+    return "bg-primary hover:bg-primary-hover";
   };
 
   const getButtonText = () => {
