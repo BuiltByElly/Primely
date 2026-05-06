@@ -1,9 +1,10 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { Plus } from "../icons/plus";
 import { getGradientClasses } from "../utils/gradient";
 import { EyeOpen } from "#/icons/eye";
 import { User } from "#/icons/user";
-import { XCircle } from "lucide-react";
+import { LogOut, XCircle } from "lucide-react";
+import { authFetch } from "#/utils/authFetch";
 
 export default function Nav({
   username,
@@ -14,6 +15,7 @@ export default function Nav({
   email: string;
   activeButton?: "view" | "dashboard" | "add";
 }) {
+  const navigate = useNavigate();
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/60 backdrop-blur-md">
       <nav className="mx-auto flex w-full items-center justify-between px-6 py-3">
@@ -70,6 +72,17 @@ export default function Nav({
               <div className="text-xs text-neutral-light">{email}</div>
             </div>
           </div>
+          <button
+            className="text-red-600 p-2 rounded-full transition-colors hover:bg-red-600/20"
+            onClick={async () => {
+              const res = await authFetch("/api/auth/logout", {
+                method: "DELETE",
+              });
+              if (res.ok) navigate({ to: "/login" });
+            }}
+          >
+            <LogOut size={20} />
+          </button>
         </div>
       </nav>
     </header>

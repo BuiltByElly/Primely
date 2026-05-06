@@ -12,6 +12,7 @@ export async function authFetch(
   input: RequestInfo | URL,
   init: RequestInit = {},
 ) {
+  "uses the fetch API and automatically adds authorization header to the req";
   const token = useAuthStore.getState().accessToken;
   const rememberMe = useRememberMeStore.getState().rememberMe;
 
