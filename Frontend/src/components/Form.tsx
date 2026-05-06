@@ -105,9 +105,8 @@ const Form = ({ type }: { type: "login" | "register" }) => {
     onSuccess: (data) => {
       setFormData(initialState);
       setAccessToken(data["access_token"]);
-      if (isLogin) {
-        setRememberMe(formData.rememberMe);
-      }
+      setRememberMe(formData.rememberMe);
+
       navigate({ to: "/me" });
     },
 
@@ -129,7 +128,7 @@ const Form = ({ type }: { type: "login" | "register" }) => {
     setFormData((prev) => ({ ...prev, rememberMe: e.target.checked }));
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     mutation.mutate(formData);
   };
@@ -193,8 +192,6 @@ const Form = ({ type }: { type: "login" | "register" }) => {
               type={field.type}
               placeholder={field.placeholder}
               icon={field.icon}
-              iconWidth={field.iconWidth}
-              iconHeight={field.iconHeight}
               value={formData[field.name as keyof typeof formData] as string}
               onChange={handleChange}
             />

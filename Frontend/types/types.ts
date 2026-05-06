@@ -1,3 +1,9 @@
+interface User {
+  public_id: string;
+  username: string;
+  email: string;
+}
+
 interface LoginData {
   username: string;
   email: string;
@@ -34,4 +40,10 @@ interface LinkData {
   status: "scanning" | "active" | "malicious" | "expired" | "failed";
   created_at: string;
   expires_at: string;
+}
+
+interface LinkCreate {
+  name: string;
+  original_link: string;
+  lifetime: number;
 }

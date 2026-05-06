@@ -1,7 +1,6 @@
 import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { TanStackDevtools } from "@tanstack/react-devtools";
-import Header from "../components/Header";
 
 import appCss from "../styles.css?url";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -46,7 +45,6 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body className="font-inter antialiased">
         <QueryClientProvider client={queryClient}>
-          <Header />
           {children}
         </QueryClientProvider>
 

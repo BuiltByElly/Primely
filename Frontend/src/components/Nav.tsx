@@ -3,6 +3,7 @@ import { Plus } from "../icons/plus";
 import { getGradientClasses } from "../utils/gradient";
 import { EyeOpen } from "#/icons/eye";
 import { User } from "#/icons/user";
+import { XCircle } from "lucide-react";
 
 export default function Nav({
   username,
@@ -11,7 +12,7 @@ export default function Nav({
 }: {
   username: string;
   email: string;
-  activeButton?: "view" | "dashboard";
+  activeButton?: "view" | "dashboard" | "add";
 }) {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/60 backdrop-blur-md">
@@ -33,14 +34,30 @@ export default function Nav({
           ) : activeButton === "dashboard" ? (
             <Link to="/me">
               <button className="bg-accent text-foreground rounded-md p-2 text-xs flex gap-1 items-center justify-center hover:bg-accent-soft transition-colors">
-                <User stroke="currentColor" fill="currentColor" /> Dashboard
+                <User
+                  stroke="currentColor"
+                  fill="currentColor"
+                  width={18}
+                  height={18}
+                />
+                Dashboard
               </button>
             </Link>
           ) : null}
 
-          <button className="bg-primary text-foreground rounded-md p-2 text-xs flex gap-1 items-center justify-center hover:bg-primary-hover transition-colors">
-            <Plus fill="currentColor" /> Add Link
-          </button>
+          {activeButton !== "add" ? (
+            <Link to="/me/add">
+              <button className="bg-primary text-foreground rounded-md p-2 text-xs flex gap-1 items-center justify-center hover:bg-primary-hover transition-colors">
+                <Plus fill="currentColor" /> Add Link
+              </button>
+            </Link>
+          ) : (
+            <Link to="/me/view">
+              <button className="bg-red-600 text-foreground rounded-md p-2 text-xs flex gap-1 items-center justify-center hover:bg-red-600/80 transition-colors">
+                <XCircle stroke="currentColor" width={18} height={18} /> Cancel
+              </button>
+            </Link>
+          )}
 
           <div className="flex items-center gap-2">
             <div

@@ -42,8 +42,7 @@ def scan_links_task():
 
         except Exception as e:
             # Something else failed — mark all as failed
-            logger.error(f"Unexpected error in scanning link celery task: {e}")
+            logger.error(f"Unexpected error in scanning link task: {e}")
             for link in unscanned_links:
                 link.status = "failed"
             session.commit()
-            raise e

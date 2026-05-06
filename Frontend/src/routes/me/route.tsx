@@ -1,7 +1,8 @@
-import { useAuthStore } from "#/store/AuthStore";
+import { useUserStore } from "#/store/AuthStore";
 import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { authFetch } from "#/utils/authFetch";
+import Footer from "#/components/Footer";
 
 export const Route = createFileRoute("/me")({
   component: MeLayout,
@@ -9,21 +10,24 @@ export const Route = createFileRoute("/me")({
 
 function MeLayout() {
   const navigate = useNavigate();
-  const setUser = useAuthStore((s) => s.setUser);
+  const setUser = useUserStore((s) => s.setUser);
+  const user = useUserStore((s) => s.user);
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     const init = async () => {
       // fetch user data
       try {
-        const res = await authFetch("/api/me");
+        if (!user) {
+          const res = await authFetch("/api/me");
 
-        if (!res.ok) {
-          throw new Error("Failed to fetch user");
+          if (!res.ok) {
+            throw new Error("Failed to fetch user");
+          }
+
+          const data = await res.json();
+          setUser(data);
         }
-
-        const data = await res.json();
-        setUser(data);
       } catch (error) {
         console.error("Error fetching user:", error);
         navigate({ to: "/login" });
@@ -40,6 +44,7 @@ function MeLayout() {
   return (
     <div className="min-h-screen bg-background text-foreground font-inter">
       <Outlet />
+      <Footer />
     </div>
   );
 }

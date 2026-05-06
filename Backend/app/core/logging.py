@@ -7,15 +7,15 @@ from .config import settings
 logger = logging.getLogger("Primely")
 logger.setLevel(logging.DEBUG if settings.is_prod else logging.INFO)
 
-# console handler
-console_handler = logging.StreamHandler()
+# # console handler
+# console_handler = logging.StreamHandler()
 
-console_handler.setLevel(logging.INFO)
-console_formatter = logging.Formatter(
-    "%(asctime)s - %(levelname)s - %(name)s - %(message)s"
-)
-console_handler.setFormatter(console_formatter)
-logger.addHandler(console_handler)
+# console_handler.setLevel(logging.INFO)
+# console_formatter = logging.Formatter(
+#     "%(asctime)s - %(levelname)s - %(name)s - %(message)s"
+# )
+# console_handler.setFormatter(console_formatter)
+# logger.addHandler(console_handler)
 
 # file handler with rotation
 

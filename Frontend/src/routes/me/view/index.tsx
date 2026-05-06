@@ -1,23 +1,31 @@
 import Nav from "#/components/Nav";
-import { useAuthStore } from "#/store/AuthStore";
+import { useUserStore } from "#/store/AuthStore";
 import { authFetchData } from "#/utils/authFetch";
+import { capitalize } from "#/utils/capitalize";
 import { useQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
-import { BadgeInfo, Copy, CopyCheck, Edit, Trash2 } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import {
+  BadgeInfo,
+  Copy,
+  CopyCheck,
+  Edit,
+  ExternalLink,
+  Trash2,
+} from "lucide-react";
 import { useState } from "react";
-export const Route = createFileRoute("/me/view")({
+export const Route = createFileRoute("/me/view/")({
   component: RouteComponent,
 });
 
-export function RouteComponent() {
+function RouteComponent() {
   const [hasCopiedID, setHasCopiedID] = useState<number>(-1);
-  const user = useAuthStore((s) => s.user);
+  const user = useUserStore((s) => s.user);
   if (!user) return null;
 
   const hour = new Date().getHours(); // 0–23
 
   const greeting =
-    hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+    hour < 12 ? "Good morning" : hour < 16 ? "Good afternoon" : "Good evening";
 
   const { data, isLoading } = useQuery({
     queryKey: ["linkData", user.public_id],
@@ -25,23 +33,33 @@ export function RouteComponent() {
       authFetchData<LinkData[]>("/api/me/links", {
         method: "GET",
       }),
+    refetchInterval: (query) => {
+      const links = query.state.data as LinkData[];
+      const isPending = links?.some((link) => link.status === "scanning");
+      return isPending ? 3000 : false;
+    },
   });
+
   if (isLoading) return <div>Loading links...</div>;
 
   const activeLinks = data?.filter((val) => val.status === "active").length;
   const maliciousLinks = data?.filter(
     (val) => val.status === "malicious",
   ).length;
-  const scanningLinks = data?.filter((val) => val.status === "scanning").length;
   const expiredLinks = data?.filter((val) => val.status === "expired").length;
+  const failedLinks = data?.filter((val) => val.status === "failed").length;
 
   const stats = [
     { num: activeLinks || 0, title: "Active Links", color: "text-accent" },
     { num: expiredLinks || 0, title: "Expired Links", color: "text-red-600" },
-    { num: scanningLinks || 0, title: "Scanning Links", color: "text-primary" },
     {
       num: maliciousLinks || 0,
       title: "Malicious Links",
+      color: "text-red-600",
+    },
+    {
+      num: failedLinks || 0,
+      title: "Failed Links",
       color: "text-red-600",
     },
   ];
@@ -74,8 +92,7 @@ export function RouteComponent() {
         />
         <div className="p-6">
           <p className="text-4xl font-manrope mb-7 p-5 pl-0">
-            {greeting},{" "}
-            {user.username.charAt(0).toUpperCase() + user.username.slice(1)}
+            {greeting}, {capitalize(user.username)}
             <span className="text-lg text-neutral mt-4 w-[50%] block">
               This section of your dashboard shows you active, scanning and
               expired links, providing an at-a-glance overview of your total
@@ -104,7 +121,7 @@ export function RouteComponent() {
                 className="flex justify-between items-center bg-card border border-border px-5 py-4 rounded-lg mb-3"
                 key={val.id}
               >
-                <p>{val.name}</p>
+                <p>{capitalize(val.name)}</p>
                 <p className="flex gap-2 items-center">
                   {val.short_code ?? "none!"}
                   <button
@@ -126,6 +143,14 @@ export function RouteComponent() {
                       <Copy size={15} />
                     )}
                   </button>
+                  <a
+                    href={val.status !== "malicious" ? val.original_link : ""}
+                    target="_blank"
+                  >
+                    <button className="p-1 transition-colors rounded-lg bg-primary/20 hover:bg-primary/30">
+                      <ExternalLink className="text-primary" size={20} />
+                    </button>
+                  </a>
                 </p>
                 <p className="flex gap-2 items-center">
                   <button
@@ -140,12 +165,17 @@ export function RouteComponent() {
                   >
                     <Edit className="text-accent" size={20} />
                   </button>
-                  <button
-                    title="Info"
-                    className="p-1 transition-colors rounded-lg bg-primary-soft hover:bg-primary/30"
+                  <Link
+                    to={`/me/view/$linkid`}
+                    params={{ linkid: val.id.toString() }}
                   >
-                    <BadgeInfo className="text-primary" size={20} />
-                  </button>
+                    <button
+                      title="Analytics"
+                      className="p-1 transition-colors rounded-lg bg-foreground/20 hover:bg-foreground/30"
+                    >
+                      <BadgeInfo className="text-foreground" size={20} />
+                    </button>
+                  </Link>
                 </p>
 
                 <p className={state[val.status].css}>{val.status}</p>
