@@ -2,6 +2,7 @@ import { Line, LineChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
 import { ArrowUp, ArrowDown } from "#/icons/arrow";
 import { Circle } from "#/icons/circle";
 import { getWeeklyAnalytics } from "#/utils/weeklyAnalytics";
+import { AlertTriangle } from "lucide-react";
 
 export default function Graph({ data }: { data: AnalyticsByDate[] }) {
   const weeklyAnalytics = getWeeklyAnalytics(data);
@@ -30,34 +31,42 @@ export default function Graph({ data }: { data: AnalyticsByDate[] }) {
       </div>
 
       <div className="h-[38vh]">
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={chartData}>
-            <XAxis
-              dataKey="day"
-              stroke="var(--neutral-light)"
-              axisLine={false}
-              tickLine={false}
-            />
-            <YAxis
-              stroke="var(--neutral-light)"
-              axisLine={false}
-              tickLine={false}
-            />
-            <Line
-              type="monotone"
-              dataKey="clicks"
-              stroke="var(--primary)"
-              strokeWidth={3}
-              dot={{
-                fill: "var(--card)",
-                stroke: "var(--primary)",
-                strokeWidth: 2,
-                r: 4,
-              }}
-              activeDot={{ stroke: "var(--primary)", strokeWidth: 2, r: 6 }}
-            />
-          </LineChart>
-        </ResponsiveContainer>
+        {data.length !== 0 && (
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={chartData}>
+              <XAxis
+                dataKey="day"
+                stroke="var(--neutral-light)"
+                axisLine={false}
+                tickLine={false}
+              />
+              <YAxis
+                stroke="var(--neutral-light)"
+                axisLine={false}
+                tickLine={false}
+              />
+              <Line
+                type="monotone"
+                dataKey="clicks"
+                stroke="var(--primary)"
+                strokeWidth={3}
+                dot={{
+                  fill: "var(--card)",
+                  stroke: "var(--primary)",
+                  strokeWidth: 2,
+                  r: 4,
+                }}
+                activeDot={{ stroke: "var(--primary)", strokeWidth: 2, r: 6 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        )}
+        {data.length === 0 && (
+          <div className="text-primary flex flex-col justify-center items-center gap-2 h-full">
+            <AlertTriangle size={50} />
+            No click events yet!
+          </div>
+        )}
       </div>
     </div>
   );

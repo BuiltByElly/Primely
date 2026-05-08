@@ -129,7 +129,10 @@ function RouteComponent() {
                   />
                   <button
                     className=" bg-primary px-4 rounded-lg hover:bg-primary-hover transition-colors disabled:bg-neutral-lighter"
-                    disabled={formData.name === "" || formData.name.length > 50}
+                    disabled={
+                      formData.name.trim() === "" ||
+                      formData.name.trim().length > 50
+                    }
                     onClick={() => slide(1)}
                   >
                     <MoveRight size={30} />
@@ -233,7 +236,7 @@ function RouteComponent() {
                       ${state === "loading" && "bg-neutral-lighter disabled:hover:bg-neutral-lighter"}
                       `}
                     onClick={handleSubmit}
-                    disabled={false}
+                    disabled={state !== "none"}
                   >
                     {state === "none" && <MoveRight size={30} />}
                     {state === "loading" && (

@@ -70,7 +70,7 @@ async def post_link(
 
 
 @links_router.get("/links", response_model=List[LinkResponse])
-@limiter.limit("30/minute")
+@limiter.limit("15/minute")
 async def get_links(
     current_user_public_id: Annotated[str, Depends(get_current_user)],
     session: SessionDeps,
@@ -88,6 +88,30 @@ async def get_links(
 
     links = session.exec(select(Links).where(Links.user_id == user.id)).all()
     return [link.model_dump() for link in links]
+
+
+@links_router.get("/links/{link_id}", response_model=LinkResponse)
+@limiter.limit("15/minute")
+async def get_link(
+    current_user_public_id: Annotated[str, Depends(get_current_user)],
+    session: SessionDeps,
+    link_id: int,
+    request: Request,
+):
+    """Get a link that matches the link_id param for the current user"""
+    user = session.exec(
+        select(Users).where(Users.public_id == UUID(current_user_public_id))
+    ).first()
+
+    if not user:
+        raise HTTPException(
+            status_code=HTTP_401_UNAUTHORIZED, detail="User not found, Go back to login"
+        )
+
+    link = session.exec(
+        select(Links).where(Links.user_id == user.id).where(Links.id == link_id)
+    ).one()
+    return link.model_dump()
 
 
 @links_router.patch("/links/{link_id}")
@@ -116,10 +140,8 @@ async def patch_link(
     if not link:
         raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail="Link not found")
 
-    if link_update.name is not None:
-        link.name = link_update.name
-    if link_update.original_link is not None:
-        link.original_link = str(link_update.original_link)
+    link.name = link_update.name
+    link.original_link = str(link_update.original_link)
 
     link.status = "scanning"
 

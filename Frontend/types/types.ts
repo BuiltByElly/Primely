@@ -47,3 +47,8 @@ interface LinkCreate {
   original_link: string;
   lifetime: number;
 }
+
+interface LinkUpdate {
+  name: string;
+  original_link: string;
+}

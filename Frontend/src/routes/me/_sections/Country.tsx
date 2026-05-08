@@ -1,4 +1,5 @@
 import { findFlagUrlByCountryName } from "country-flags-svg";
+import { AlertTriangle } from "lucide-react";
 
 const Country = ({ data }: { data: AnalyticsByCountry[] }) => {
   return (
@@ -27,6 +28,12 @@ const Country = ({ data }: { data: AnalyticsByCountry[] }) => {
             <p>{item.clicks}</p>
           </li>
         ))}
+        {data.length === 0 && (
+          <div className="text-primary flex flex-col justify-center items-center gap-2 h-full">
+            <AlertTriangle size={50} />
+            No click events yet!
+          </div>
+        )}
       </ul>
     </div>
   );

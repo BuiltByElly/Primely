@@ -3,8 +3,8 @@ export const validateLink = (link: string) => {
     const parsed = new URL(link);
     return (
       ((parsed.protocol === "https:" || parsed.protocol === "http:") &&
-        parsed.hostname.includes(".")) ||
-      parsed.hostname.includes(":")
+        parsed.host.includes(".")) ||
+      parsed.host.includes(":")
     );
   } catch {
     return false;

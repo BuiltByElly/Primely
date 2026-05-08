@@ -17,7 +17,7 @@ export default function Nav({
 }) {
   const navigate = useNavigate();
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/60 backdrop-blur-md">
+    <div className="sticky top-0 w-full border-b border-border bg-background/60 backdrop-blur-md">
       <nav className="mx-auto flex w-full items-center justify-between px-6 py-3">
         <Link
           to="/"
@@ -85,6 +85,6 @@ export default function Nav({
           </button>
         </div>
       </nav>
-    </header>
+    </div>
   );
 }
