@@ -7,7 +7,7 @@ import Country from "./_sections/-Country";
 import Browser from "./_sections/-Browser";
 import Graph from "./_sections/-Graph";
 import { capitalize } from "#/utils/capitalize";
-import Loading from "#/components/loading";
+import Loading from "#/components/Loading";
 
 export const Route = createFileRoute("/me/")({
   component: RouteComponent,
@@ -22,7 +22,7 @@ function RouteComponent() {
   const greeting =
     hour < 12 ? "Good morning" : hour < 16 ? "Good afternoon" : "Good evening";
 
-  const { data, isLoading, isError } = useQuery<AnalyticsData>({
+  const { data, isLoading } = useQuery<AnalyticsData>({
     queryKey: ["analytics", user.public_id],
     queryFn: () => authFetchData<AnalyticsData>("/api/me/analytics"),
   });

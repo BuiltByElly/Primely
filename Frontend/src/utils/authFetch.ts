@@ -1,11 +1,11 @@
 import { useAuthStore, useRememberMeStore } from "../store/AuthStore";
+import { getRouter } from "#/router";
 
 function redirectToLogin() {
   useAuthStore.getState().setAccessToken(null);
-
-  if (typeof window !== "undefined") {
-    window.location.href = "/login";
-  }
+  getRouter().navigate({
+    to: "/login",
+  });
 }
 
 export async function authFetch(
@@ -73,8 +73,9 @@ export async function authFetchData<T>(
   const response = await authFetch(input, init);
 
   if (!response.ok) {
+    const d = await response.json();
     throw new Error(
-      `Request failed with status ${response.status},${response}`,
+      `Request failed with status ${response.status}, ${d.detail}`,
     );
   }
 

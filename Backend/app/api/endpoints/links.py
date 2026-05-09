@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from sqlalchemy import func
+from sqlalchemy.exc import NoResultFound
 from sqlmodel import select
 from starlette.status import (
     HTTP_200_OK,
@@ -108,9 +109,12 @@ async def get_link(
             status_code=HTTP_401_UNAUTHORIZED, detail="User not found, Go back to login"
         )
 
-    link = session.exec(
-        select(Links).where(Links.user_id == user.id).where(Links.id == link_id)
-    ).one()
+    try:
+        link = session.exec(
+            select(Links).where(Links.user_id == user.id).where(Links.id == link_id)
+        ).one()
+    except NoResultFound:
+        raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail="Link not found")
     return link.model_dump()
 
 

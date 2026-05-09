@@ -12,7 +12,7 @@ import Browser from "../_sections/-Browser";
 import { useLinkUpdateStore } from "#/store/LinkStore";
 import EditModal from "../_sections/-EditModal";
 import { useToastStore } from "#/store/ToastStore";
-import Loading from "#/components/loading";
+import Loading from "#/components/Loading";
 
 export const Route = createFileRoute("/me/view/$linkid")({
   component: RouteComponent,
@@ -47,7 +47,6 @@ function RouteComponent() {
       return isPending ? 3000 : false;
     },
   });
-
   useEffect(() => {
     if (!datum) return;
     if (datum.status === "scanning") {

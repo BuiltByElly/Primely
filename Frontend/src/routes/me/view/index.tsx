@@ -17,7 +17,7 @@ import { useEffect, useState } from "react";
 import EditModal from "../_sections/-EditModal";
 import { useLinkUpdateStore } from "#/store/LinkStore";
 import { useToastStore } from "#/store/ToastStore";
-import Loading from "#/components/loading";
+import Loading from "#/components/Loading";
 
 export const Route = createFileRoute("/me/view/")({
   component: RouteComponent,

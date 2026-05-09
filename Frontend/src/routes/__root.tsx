@@ -6,6 +6,8 @@ import appCss from "../styles.css?url";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useEffect } from "react";
 import Toasts from "#/components/Toasts";
+import { DefaultErrorComponent } from "#/components/Error";
+import NotFound from "#/components/NotFound";
 
 export const Route = createRootRoute({
   head: () => ({
@@ -29,10 +31,18 @@ export const Route = createRootRoute({
     ],
   }),
   shellComponent: RootDocument,
+  errorComponent: DefaultErrorComponent,
+  notFoundComponent: NotFound,
 });
 
 function RootDocument({ children }: { children: React.ReactNode }) {
-  const queryClient = new QueryClient();
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        throwOnError: true,
+      },
+    },
+  });
 
   useEffect(() => {
     //@ts-ignore-next-line

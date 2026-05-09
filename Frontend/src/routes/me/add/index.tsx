@@ -62,7 +62,7 @@ function RouteComponent() {
 
       setTimeout(() => {
         navigate({ to: "/me/view" });
-      }, 3000);
+      }, 2000);
     },
 
     onError: () => {

@@ -3,7 +3,7 @@ import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { authFetch } from "#/utils/authFetch";
 import Footer from "#/components/Footer";
-import Loading from "#/components/loading";
+import Loading from "#/components/Loading";
 import { useToastStore } from "#/store/ToastStore";
 
 export const Route = createFileRoute("/me")({
