@@ -17,6 +17,7 @@ import { useEffect, useState } from "react";
 import EditModal from "../_sections/-EditModal";
 import { useLinkUpdateStore } from "#/store/LinkStore";
 import { useToastStore } from "#/store/ToastStore";
+import Loading from "#/components/loading";
 
 export const Route = createFileRoute("/me/view/")({
   component: RouteComponent,
@@ -87,7 +88,7 @@ function RouteComponent() {
     }
   };
 
-  if (isLoading) return <div>Loading links...</div>;
+  if (isLoading) return <Loading />;
 
   const activeLinks = data?.filter((val) => val.status === "active").length;
   const maliciousLinks = data?.filter(

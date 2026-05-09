@@ -12,6 +12,7 @@ import Browser from "../_sections/-Browser";
 import { useLinkUpdateStore } from "#/store/LinkStore";
 import EditModal from "../_sections/-EditModal";
 import { useToastStore } from "#/store/ToastStore";
+import Loading from "#/components/loading";
 
 export const Route = createFileRoute("/me/view/$linkid")({
   component: RouteComponent,
@@ -34,7 +35,7 @@ function RouteComponent() {
 
   if (!user) return null;
 
-  const { data: datum } = useQuery({
+  const { data: datum, isLoading: datumLoading } = useQuery({
     queryKey: ["linkDatum", user.public_id],
     queryFn: () =>
       authFetchData<LinkData>(`/api/me/links/${params.linkid}`, {
@@ -108,7 +109,7 @@ function RouteComponent() {
     },
   };
 
-  if (isLoading) return <p>Loading links and analytics...</p>;
+  if (isLoading || datumLoading) return <Loading />;
 
   if (!analyticsData || !datum) return;
 

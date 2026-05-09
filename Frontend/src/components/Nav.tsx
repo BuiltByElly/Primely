@@ -5,6 +5,7 @@ import { EyeOpen } from "#/icons/eye";
 import { User } from "#/icons/user";
 import { LogOut, XCircle } from "lucide-react";
 import { authFetch } from "#/utils/authFetch";
+import { useToastStore } from "#/store/ToastStore";
 
 export default function Nav({
   username,
@@ -16,6 +17,7 @@ export default function Nav({
   activeButton?: "view" | "dashboard" | "add";
 }) {
   const navigate = useNavigate();
+  const { addToast } = useToastStore();
   return (
     <div className="sticky top-0 w-full border-b border-border bg-background/60 backdrop-blur-md">
       <nav className="mx-auto flex w-full items-center justify-between px-6 py-3">
@@ -78,7 +80,13 @@ export default function Nav({
               const res = await authFetch("/api/auth/logout", {
                 method: "DELETE",
               });
-              if (res.ok) navigate({ to: "/login" });
+              if (res.ok) {
+                navigate({ to: "/login" });
+                addToast({
+                  state: "success",
+                  text: "Logged out successfully",
+                });
+              }
             }}
           >
             <LogOut size={20} />

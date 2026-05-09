@@ -5,6 +5,7 @@ import { TanStackDevtools } from "@tanstack/react-devtools";
 import appCss from "../styles.css?url";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useEffect } from "react";
+import Toasts from "#/components/Toasts";
 
 export const Route = createRootRoute({
   head: () => ({
@@ -46,6 +47,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <body className="font-inter antialiased">
         <QueryClientProvider client={queryClient}>
           {children}
+          <Toasts />
         </QueryClientProvider>
 
         <TanStackDevtools
