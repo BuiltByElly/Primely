@@ -3,9 +3,9 @@ import { useUserStore } from "#/store/AuthStore";
 import Nav from "#/components/Nav";
 import { useQuery } from "@tanstack/react-query";
 import { authFetchData } from "#/utils/authFetch";
-import Country from "./_sections/Country";
-import Browser from "./_sections/Browser";
-import Graph from "./_sections/Graph";
+import Country from "./_sections/-Country";
+import Browser from "./_sections/-Browser";
+import Graph from "./_sections/-Graph";
 import { capitalize } from "#/utils/capitalize";
 
 export const Route = createFileRoute("/me/")({

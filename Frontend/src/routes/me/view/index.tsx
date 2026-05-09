@@ -14,7 +14,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import EditModal from "../_sections/EditModal";
+import EditModal from "../_sections/-EditModal";
 import { useLinkUpdateStore } from "#/store/LinkStore";
 import { useToastStore } from "#/store/ToastStore";
 

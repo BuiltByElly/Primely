@@ -6,11 +6,11 @@ import { capitalize } from "#/utils/capitalize";
 import Nav from "#/components/Nav";
 import { useEffect, useState } from "react";
 import { Copy, CopyCheck, Edit, ExternalLink, Trash2 } from "lucide-react";
-import Graph from "../_sections/Graph";
-import Country from "../_sections/Country";
-import Browser from "../_sections/Browser";
+import Graph from "../_sections/-Graph";
+import Country from "../_sections/-Country";
+import Browser from "../_sections/-Browser";
 import { useLinkUpdateStore } from "#/store/LinkStore";
-import EditModal from "../_sections/EditModal";
+import EditModal from "../_sections/-EditModal";
 import { useToastStore } from "#/store/ToastStore";
 
 export const Route = createFileRoute("/me/view/$linkid")({
