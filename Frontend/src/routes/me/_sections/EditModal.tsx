@@ -1,7 +1,8 @@
 import Spinner from "#/components/Spinner";
 import { useUserStore } from "#/store/AuthStore";
 import { useLinkUpdateStore } from "#/store/LinkStore";
-import { authFetch, authFetchData } from "#/utils/authFetch";
+import { useToastStore } from "#/store/ToastStore";
+import { authFetchData } from "#/utils/authFetch";
 import { capitalize } from "#/utils/capitalize";
 import { validateLink } from "#/utils/validator";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -17,6 +18,7 @@ interface EditModalInterface {
 export default function EditModal(props: EditModalInterface) {
   const user = useUserStore((s) => s.user);
   if (!user) return null;
+  const { addToast } = useToastStore();
 
   const initialState: LinkUpdate = {
     name: props.oldName,
@@ -44,6 +46,10 @@ export default function EditModal(props: EditModalInterface) {
     onSuccess: () => {
       setFormData(initialState);
       setState("success");
+      addToast({
+        state: "success",
+        text: "Updated link successfully!",
+      });
       setTimeout(() => {
         queryClient.invalidateQueries({
           queryKey: ["linkData"],
@@ -58,6 +64,10 @@ export default function EditModal(props: EditModalInterface) {
     },
     onError: () => {
       setState("error");
+      addToast({
+        state: "error",
+        text: "Oops, an error occurred while trying to update link.",
+      });
       setTimeout(() => setState("none"), 1500);
     },
   });
@@ -66,12 +76,18 @@ export default function EditModal(props: EditModalInterface) {
     setState("loading");
     if (formData.name.trim() === "" || formData.name.trim().length > 50) {
       setState("error");
-      console.log("Name is empty or above 50");
+      addToast({ state: "warning", text: "Name is empty or above 50" });
       setTimeout(() => setState("none"), 1500);
+      return;
     } else if (!validateLink(formData.original_link)) {
       setState("error");
-      console.log("Original Link is not a valid link");
+      addToast({
+        state: "warning",
+        text: "Original Link is not a valid link",
+      });
+
       setTimeout(() => setState("none"), 1500);
+      return;
     }
     mutation.mutate(formData);
   };

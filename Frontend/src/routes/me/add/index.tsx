@@ -15,6 +15,7 @@ import { authFetchData } from "#/utils/authFetch";
 import { validateLink } from "#/utils/validator";
 import gsap from "gsap";
 import Spinner from "#/components/Spinner";
+import { useToastStore } from "#/store/ToastStore";
 
 export const Route = createFileRoute("/me/add/")({
   component: RouteComponent,
@@ -38,6 +39,7 @@ function RouteComponent() {
     "none",
   );
   const navigate = useNavigate();
+  const { addToast } = useToastStore();
 
   const mutation = useMutation({
     mutationFn: async (data: typeof formData) => {
@@ -53,13 +55,25 @@ function RouteComponent() {
     onSuccess: () => {
       setFormData(initialState);
       setState("success");
+      addToast({
+        state: "success",
+        text: "Your new link has been added successfully. Redirecting to your links page.",
+      });
 
       setTimeout(() => {
         navigate({ to: "/me/view" });
       }, 3000);
     },
+
     onError: () => {
       setState("error");
+      addToast({
+        state: "error",
+        text: "Oops, seems like there was an error while creating your link. Give it another try.",
+      });
+      setTimeout(() => {
+        setState("none");
+      }, 3000);
     },
   });
 

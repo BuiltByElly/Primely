@@ -4,13 +4,14 @@ import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { capitalize } from "#/utils/capitalize";
 import Nav from "#/components/Nav";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Copy, CopyCheck, Edit, ExternalLink, Trash2 } from "lucide-react";
 import Graph from "../_sections/Graph";
 import Country from "../_sections/Country";
 import Browser from "../_sections/Browser";
 import { useLinkUpdateStore } from "#/store/LinkStore";
 import EditModal from "../_sections/EditModal";
+import { useToastStore } from "#/store/ToastStore";
 
 export const Route = createFileRoute("/me/view/$linkid")({
   component: RouteComponent,
@@ -29,6 +30,7 @@ function RouteComponent() {
     oldOriginalLink,
     setOldOriginalLink,
   } = useLinkUpdateStore();
+  const { addToast } = useToastStore();
 
   if (!user) return null;
 
@@ -45,6 +47,21 @@ function RouteComponent() {
     },
   });
 
+  useEffect(() => {
+    if (!datum) return;
+    if (datum.status === "scanning") {
+      addToast({
+        state: "info",
+        text: "Currently scanning link, give it a moment.",
+      });
+    } else if (datum.status === "failed") {
+      addToast({
+        state: "error",
+        text: "Oops, an error occued while scanning this link.",
+      });
+    }
+  }, [datum]);
+
   const { data: analyticsData, isLoading } = useQuery({
     queryKey: ["linkAnalyticsData", user.public_id],
     queryFn: () =>
@@ -60,7 +77,16 @@ function RouteComponent() {
     });
 
     if (res.ok) {
+      addToast({
+        state: "success",
+        text: "Link deleted successfully!",
+      });
       navigate({ to: "/me/view" });
+    } else {
+      addToast({
+        state: "error",
+        text: "Oops, an error occurred while trying to delete link.",
+      });
     }
   };
 

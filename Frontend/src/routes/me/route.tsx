@@ -3,6 +3,7 @@ import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { authFetch } from "#/utils/authFetch";
 import Footer from "#/components/Footer";
+import Toasts from "#/components/Toasts";
 
 export const Route = createFileRoute("/me")({
   component: MeLayout,
@@ -44,6 +45,7 @@ function MeLayout() {
   return (
     <div className="min-h-screen bg-background text-foreground font-inter">
       <Outlet />
+      <Toasts />
       <Footer />
     </div>
   );

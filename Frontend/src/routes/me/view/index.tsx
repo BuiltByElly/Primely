@@ -13,9 +13,10 @@ import {
   ExternalLink,
   Trash2,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import EditModal from "../_sections/EditModal";
 import { useLinkUpdateStore } from "#/store/LinkStore";
+import { useToastStore } from "#/store/ToastStore";
 
 export const Route = createFileRoute("/me/view/")({
   component: RouteComponent,
@@ -31,14 +32,10 @@ function RouteComponent() {
     oldOriginalLink,
     setOldOriginalLink,
   } = useLinkUpdateStore();
+  const { addToast } = useToastStore();
 
   const user = useUserStore((s) => s.user);
   if (!user) return null;
-
-  const hour = new Date().getHours(); // 0–23
-
-  const greeting =
-    hour < 12 ? "Good morning" : hour < 16 ? "Good afternoon" : "Good evening";
 
   const queryClient = useQueryClient();
   const { data, isLoading } = useQuery({
@@ -54,6 +51,21 @@ function RouteComponent() {
     },
   });
 
+  useEffect(() => {
+    if (!data) return;
+    if (data.some((link) => link.status === "scanning")) {
+      addToast({
+        state: "info",
+        text: "Currently scanning unactive links, give it a moment.",
+      });
+    } else if (data.some((link) => link.status === "failed")) {
+      addToast({
+        state: "error",
+        text: "Oops, an error occued while scanning some unactive links.",
+      });
+    }
+  }, [data]);
+
   const deleteLink = async (link_id: number) => {
     const res = await authFetch(`/api/me/links/${link_id}`, {
       method: "DELETE",
@@ -62,6 +74,15 @@ function RouteComponent() {
     if (res.ok) {
       queryClient.invalidateQueries({
         queryKey: ["linkData"],
+      });
+      addToast({
+        state: "success",
+        text: "Link deleted successfully!",
+      });
+    } else {
+      addToast({
+        state: "error",
+        text: "Oops, an error occurred while trying to delete link.",
       });
     }
   };
@@ -107,6 +128,11 @@ function RouteComponent() {
       css: "text-red-600 bg-red-600/20 py-1 border border-red-600 px-2 text-sm rounded-md",
     },
   };
+
+  const hour = new Date().getHours(); // 0–23
+
+  const greeting =
+    hour < 12 ? "Good morning" : hour < 16 ? "Good afternoon" : "Good evening";
 
   return (
     <div className=" text-foreground relative">

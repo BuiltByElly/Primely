@@ -4,7 +4,7 @@ import { Whatsapp } from "#/icons/whatsapp";
 
 const Footer = () => {
   return (
-    <div className=" text-center p-3">
+    <div className="text-center p-3">
       <div className="opacity-50 w-full h-[.05rem] bg-foreground rounded-full" />
       <p className="my-4 font-manrope tracking-wide">
         Built By{" "}
