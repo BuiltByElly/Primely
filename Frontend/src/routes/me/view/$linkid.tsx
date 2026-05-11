@@ -43,10 +43,12 @@ function RouteComponent() {
       }),
     refetchInterval: (query) => {
       const link = query.state.data;
-      const isPending = link?.status === "scanning";
+      const isPending =
+        link?.status === "scanning" || link?.status === "failed";
       return isPending ? 3000 : false;
     },
   });
+
   useEffect(() => {
     if (!datum) return;
     if (datum.status === "scanning") {
@@ -197,7 +199,7 @@ function RouteComponent() {
           </p>
         </div>
         <Graph data={analyticsData.clicks_over_time} />
-        <div className="flex gap-3 items-center w-full mt-3">
+        <div className="flex gap-3 items-center w-full mt-3 flex-col xl:flex-row">
           <Country data={analyticsData.clicks_by_country} />
           <Browser data={analyticsData.clicks_by_browser} />
         </div>

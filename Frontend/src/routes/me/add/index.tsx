@@ -62,7 +62,7 @@ function RouteComponent() {
 
       setTimeout(() => {
         navigate({ to: "/me/view" });
-      }, 2000);
+      }, 500);
     },
 
     onError: () => {
@@ -73,7 +73,7 @@ function RouteComponent() {
       });
       setTimeout(() => {
         setState("none");
-      }, 3000);
+      }, 1000);
     },
   });
 
@@ -106,15 +106,15 @@ function RouteComponent() {
     <div className="overflow-x-hidden">
       <div>
         <Nav username={user.username} email={user.email} activeButton="add" />
-        <div className="p-6 min-h-[90vh]">
+        <div className="p-3 lg:p-6 min-h-[90vh]">
           <p className="text-4xl font-manrope mb-4 p-5 pl-0">
             Hey {capitalize(user.username)},
-            <span className="text-lg text-neutral mt-3 w-[50%] block">
+            <span className="text-lg text-neutral mt-3 xl:w-[50%] block">
               Let's walk you through creating a new link!
             </span>
           </p>
           <button
-            className="mb-2  bg-neutral-lighter py-2 px-4 rounded-lg hover:bg-primary-hover transition-colors disabled:opacity-20 disabled:hover:bg-neutral-lighter"
+            className="mb-4  bg-neutral-lighter py-2 px-4 rounded-lg hover:bg-primary-hover transition-colors disabled:opacity-20 disabled:hover:bg-neutral-lighter xl:mb-2"
             disabled={index === 0}
             onClick={() => slide(index - 1)}
           >
@@ -123,8 +123,8 @@ function RouteComponent() {
 
           <div ref={containerRef}>
             {index === 0 && (
-              <div className="w-[50%] ml-15">
-                <div className="text-6xl font-manrope font-extralight leading-20">
+              <div className="ml-2 xl:w-[50%] xl:ml-15">
+                <div className="text-5xl font-manrope font-extralight leading-15 xl:leading-20 xl:text-6xl">
                   What will be the name of this new short link?
                 </div>
                 <div className="mt-10 flex gap-4 w-full">
@@ -158,8 +158,8 @@ function RouteComponent() {
               </div>
             )}
             {index === 1 && (
-              <div className="w-[50%] ml-15">
-                <div className="text-6xl font-manrope font-extralight leading-20">
+              <div className="ml-2 xl:w-[50%] xl:ml-15">
+                <div className="text-5xl font-manrope font-extralight leading-15 xl:leading-20 xl:text-6xl">
                   We will need the original link, please?
                 </div>
                 <div className="mt-10 flex gap-4 w-full">
@@ -194,8 +194,8 @@ function RouteComponent() {
               </div>
             )}
             {index === 2 && (
-              <div className="w-[50%] ml-15">
-                <div className="text-6xl font-manrope font-extralight leading-20">
+              <div className="ml-2 xl:w-[50%] xl:ml-15">
+                <div className="text-5xl font-manrope font-extralight leading-15 xl:leading-20 xl:text-6xl">
                   How long do you want this link to last?
                 </div>
                 <div className="mt-10 flex gap-4 w-full text-xl items-center">

@@ -4,7 +4,7 @@ import { AlertTriangle } from "lucide-react";
 const Country = ({ data }: { data: AnalyticsByCountry[] }) => {
   return (
     <div className="w-full bg-card h-[50vh] px-4 rounded-lg border border-border overflow-y-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent scrollbar-thumb-rounded-full hover:scrollbar-thumb-neutral-light">
-      <p className="text-lg bg-card sticky top-0 py-4">
+      <p className="text-lg bg-card sticky top-0 py-4 z-0">
         Top Countries by Click Events
       </p>
       <ul className="mt-4">

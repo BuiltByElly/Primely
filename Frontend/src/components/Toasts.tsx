@@ -40,7 +40,7 @@ const Toasts = () => {
     if (toasts.length === 0) return;
     const timeOut = setTimeout(() => {
       animateOut(toasts[0].id as string);
-    }, 4000);
+    }, 3500);
 
     return () => {
       clearTimeout(timeOut);
@@ -48,13 +48,13 @@ const Toasts = () => {
   });
 
   return (
-    <div className="fixed z-50 right-5 bottom-5">
+    <div className="fixed z-50 right-0 bottom-5 lg:right-5">
       <div>
         <ul className="flex flex-col gap-2" ref={containerRef}>
           {toasts.map((toast) => (
             <li key={toast.id} className="toast" id={`toast-${toast.id}`}>
               {toast.state === "info" && (
-                <div className="bg-foreground/23 p-3 w-md rounded-lg border border-foreground backdrop-blur-md">
+                <div className="bg-foreground/23 p-3 w-full rounded-lg border border-foreground backdrop-blur-md lg:w-md">
                   <p className="flex justify-between items-center pb-2">
                     <span className="flex gap-1 items-center">
                       <BadgeInfo className="text-foreground" />
@@ -73,7 +73,7 @@ const Toasts = () => {
               )}
 
               {toast.state === "error" && (
-                <div className="text-red-600 bg-red-600/23 p-3 w-md rounded-lg border border-red-600 backdrop-blur-md">
+                <div className="text-red-600 bg-red-600/23 p-3 w-full rounded-lg border border-red-600 backdrop-blur-md lg:w-md">
                   <p className="flex justify-between items-center pb-2">
                     <span className="flex gap-1 items-center">
                       <AlertTriangle className="text-red-600" />
@@ -92,7 +92,7 @@ const Toasts = () => {
               )}
 
               {toast.state === "success" && (
-                <div className="text-green-500 bg-green-500/23 p-3 w-md rounded-lg border border-green-500 backdrop-blur-md">
+                <div className="text-green-500 bg-green-500/23 p-3 w-full rounded-lg border border-green-500 backdrop-blur-md lg:w-md">
                   <p className="flex justify-between items-center pb-2">
                     <span className="flex gap-1 items-center">
                       <CheckCircle className="text-green-500" />
@@ -111,7 +111,7 @@ const Toasts = () => {
               )}
 
               {toast.state === "warning" && (
-                <div className="text-primary bg-primary/23 p-3 w-md rounded-lg border border-primary backdrop-blur-md">
+                <div className="text-primary bg-primary/23 p-3 w-full rounded-lg border border-primary backdrop-blur-md lg:w-md">
                   <p className="flex justify-between items-center pb-2">
                     <span className="flex gap-1 items-center">
                       <AlertTriangle className="text-primary" />

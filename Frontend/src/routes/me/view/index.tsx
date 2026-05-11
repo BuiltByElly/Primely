@@ -34,6 +34,7 @@ function RouteComponent() {
     setOldOriginalLink,
   } = useLinkUpdateStore();
   const { addToast } = useToastStore();
+  const [isMobile, setIsMobile] = useState(false);
 
   const user = useUserStore((s) => s.user);
   if (!user) return null;
@@ -47,7 +48,9 @@ function RouteComponent() {
       }),
     refetchInterval: (query) => {
       const links = query.state.data as LinkData[];
-      const isPending = links?.some((link) => link.status === "scanning");
+      const isPending = links?.some(
+        (link) => link.status === "scanning" || link.status === "failed",
+      );
       return isPending ? 3000 : false;
     },
   });
@@ -67,6 +70,11 @@ function RouteComponent() {
     }
   }, [data]);
 
+  useEffect(() => {
+    if (window.innerWidth < 1280) {
+      setIsMobile(true);
+    }
+  });
   const deleteLink = async (link_id: number) => {
     const res = await authFetch(`/api/me/links/${link_id}`, {
       method: "DELETE",
@@ -151,19 +159,19 @@ function RouteComponent() {
         activeButton="dashboard"
       />
 
-      <div className="p-6">
-        <p className="text-4xl font-manrope mb-7 p-5 pl-0">
+      <div className="p-3 lg:p-6">
+        <p className="text-3xl font-manrope mb-7 p-5 pl-0 xl:text-4xl">
           {greeting}, {capitalize(user.username)}
-          <span className="text-lg text-neutral mt-4 w-[50%] block">
+          <span className="text-lg block text-neutral mt-4 xl:w-[40%]">
             This section of your dashboard shows you active, scanning and
             expired links, providing an at-a-glance overview of your total link
             statistics.
           </span>
         </p>
-        <div className="flex justify-between">
+        <div className="grid grid-cols-2 gap-6 w-full xl:grid-cols-4">
           {stats.map((stat, i) => (
             <div
-              className="bg-card p-3 mt-3 w-[21%] rounded-md border border-border"
+              className="bg-card p-3 mt-3 rounded-md border border-border"
               key={i}
             >
               <p className="text-neutral-light">{stat.title} </p>
@@ -179,7 +187,7 @@ function RouteComponent() {
         <ul className="mt-10">
           {data?.length === 0 && (
             <div>
-              <p className="flex flex-col items-center justify-center gap-2">
+              <p className="flex flex-col my-7 items-center justify-center gap-2">
                 <span className="flex text-neutral-light items-center gap-2 justify-center">
                   <BadgeInfo /> You have not created any short link yet!
                 </span>
@@ -191,80 +199,175 @@ function RouteComponent() {
               </p>
             </div>
           )}
-          {data?.map((val) => (
-            <li
-              className="flex justify-between items-center bg-card border border-border px-5 py-4 rounded-lg mb-3"
-              key={val.id}
-            >
-              <p>{capitalize(val.name)}</p>
-              <p className="flex gap-2 items-center">
-                {val.short_code ?? "none!"}
-                <button
-                  className={`text-sm p-1.5 transition-colors rounded-lg ${hasCopiedID === val.id ? "bg-green-500/20" : "bg-foreground/20 hover:bg-foreground/30"}`}
-                  onClick={async () => {
-                    await navigator.clipboard.writeText(
-                      val.short_code
-                        ? `${window.location.host}/r/${val.short_code}`
-                        : "",
-                    );
-                    setHasCopiedID(val.id);
-                    setTimeout(() => setHasCopiedID(-1), 1500);
-                  }}
-                  disabled={hasCopiedID === val.id || !val.short_code}
-                >
-                  {hasCopiedID === val.id ? (
-                    <CopyCheck size={15} className="text-green-500" />
-                  ) : (
-                    <Copy size={15} />
-                  )}
-                </button>
-                <a
-                  href={val.status !== "malicious" ? val.original_link : ""}
-                  target="_blank"
-                >
-                  <button className="p-1 transition-colors rounded-lg bg-primary/20 hover:bg-primary/30">
-                    <ExternalLink className="text-primary" size={20} />
-                  </button>
-                </a>
-              </p>
-              <p className="flex gap-2 items-center">
-                <button
-                  className="p-1 transition-colors rounded-lg bg-red-600/20 hover:bg-red-600/30"
-                  title="Delete"
-                  onClick={async () => await deleteLink(val.id)}
-                >
-                  <Trash2 className="text-red-500" size={20} />
-                </button>
-                <button
-                  title="Edit"
-                  className="p-1 transition-colors rounded-lg bg-accent/20 hover:bg-accent/30"
-                >
-                  <Edit
-                    className="text-accent"
-                    size={20}
-                    onClick={() => {
-                      setLinkId(val.id);
-                      setOldName(val.name);
-                      setOldOriginalLink(val.original_link);
-                    }}
-                  />
-                </button>
-                <Link
-                  to={`/me/view/$linkid`}
-                  params={{ linkid: val.id.toString() }}
-                >
-                  <button
-                    title="Analytics"
-                    className="p-1 transition-colors rounded-lg bg-foreground/20 hover:bg-foreground/30"
-                  >
-                    <BadgeInfo className="text-foreground" size={20} />
-                  </button>
-                </Link>
-              </p>
 
-              <p className={state[val.status].css}>{val.status}</p>
-            </li>
-          ))}
+          {!isMobile ? (
+            <>
+              {data?.map((val) => (
+                <li
+                  className="flex justify-between items-center bg-card border border-border px-5 py-4 rounded-lg mb-3"
+                  key={val.id}
+                >
+                  <p>
+                    {capitalize(val.name)}
+                    <a
+                      href={val.status !== "malicious" ? val.original_link : ""}
+                      target="_blank"
+                    >
+                      <button className=" hover:text-foreground/50 transition-colors ml-1">
+                        <ExternalLink size={20} />
+                      </button>
+                    </a>
+                  </p>
+                  <p className="flex gap-2 items-center">
+                    {val.short_code ?? "none!"}
+                    <button
+                      className={`text-sm p-1.5 transition-colors rounded-lg ${hasCopiedID === val.id ? "bg-green-500/20" : "bg-foreground/20 hover:bg-foreground/30 disabled:hover:bg-foreground/20"}`}
+                      onClick={async () => {
+                        await navigator.clipboard.writeText(
+                          val.short_code
+                            ? `${window.location.host}/r/${val.short_code}`
+                            : "",
+                        );
+                        setHasCopiedID(val.id);
+                        setTimeout(() => setHasCopiedID(-1), 1500);
+                      }}
+                      disabled={hasCopiedID === val.id || !val.short_code}
+                    >
+                      {hasCopiedID === val.id ? (
+                        <CopyCheck size={15} className="text-green-500" />
+                      ) : (
+                        <Copy size={15} />
+                      )}
+                    </button>
+                  </p>
+                  <p className="flex gap-2 items-center">
+                    <button
+                      className="p-1 transition-colors rounded-lg bg-red-600/20 hover:bg-red-600/30"
+                      title="Delete"
+                      onClick={async () => await deleteLink(val.id)}
+                    >
+                      <Trash2 className="text-red-500" size={20} />
+                    </button>
+                    <button
+                      title="Edit"
+                      className="p-1 transition-colors rounded-lg bg-accent/20 hover:bg-accent/30"
+                    >
+                      <Edit
+                        className="text-accent"
+                        size={20}
+                        onClick={() => {
+                          setLinkId(val.id);
+                          setOldName(val.name);
+                          setOldOriginalLink(val.original_link);
+                        }}
+                      />
+                    </button>
+                    <Link
+                      to={`/me/view/$linkid`}
+                      params={{ linkid: val.id.toString() }}
+                    >
+                      <button
+                        title="Analytics"
+                        className="p-1 transition-colors rounded-lg bg-foreground/20 hover:bg-foreground/30"
+                      >
+                        <BadgeInfo className="text-foreground" size={20} />
+                      </button>
+                    </Link>
+                  </p>
+
+                  <p className={state[val.status].css}>{val.status}</p>
+                </li>
+              ))}
+            </>
+          ) : (
+            <>
+              {data?.map((val) => (
+                <li
+                  className="flex justify-between items-center bg-card border border-border px-5 py-4 rounded-lg mb-3"
+                  key={val.id}
+                >
+                  <div>
+                    <p className="mb-2">
+                      {capitalize(val.name)}{" "}
+                      <a
+                        href={
+                          val.status !== "malicious" ? val.original_link : ""
+                        }
+                        target="_blank"
+                      >
+                        <button>
+                          <ExternalLink className="text-foreground" size={20} />
+                        </button>
+                      </a>
+                    </p>
+                    <p
+                      className="flex gap-1 items-center text-neutral underline cursor-pointer"
+                      onClick={async () => {
+                        if (hasCopiedID === val.id || !val.short_code) return;
+                        await navigator.clipboard.writeText(
+                          val.short_code
+                            ? `${window.location.host}/r/${val.short_code}`
+                            : "",
+                        );
+                        setHasCopiedID(val.id);
+                        setTimeout(() => setHasCopiedID(-1), 1500);
+                      }}
+                    >
+                      {val.short_code ?? "none!"}
+                      <span
+                        className={`text-sm  transition-colors rounded-lg
+                     `}
+                      >
+                        {hasCopiedID === val.id ? (
+                          <CopyCheck size={15} className="text-green-500" />
+                        ) : (
+                          <Copy size={15} />
+                        )}
+                      </span>
+                    </p>
+                  </div>
+
+                  {/*Actions*/}
+                  <p className="flex gap-2 items-center">
+                    <button
+                      className="p-1 transition-colors rounded-lg bg-red-600/20 hover:bg-red-600/30"
+                      title="Delete"
+                      onClick={async () => await deleteLink(val.id)}
+                    >
+                      <Trash2 className="text-red-500" size={20} />
+                    </button>
+                    <button
+                      title="Edit"
+                      className="p-1 transition-colors rounded-lg bg-accent/20 hover:bg-accent/30"
+                    >
+                      <Edit
+                        className="text-accent"
+                        size={20}
+                        onClick={() => {
+                          setLinkId(val.id);
+                          setOldName(val.name);
+                          setOldOriginalLink(val.original_link);
+                        }}
+                      />
+                    </button>
+                    <Link
+                      to={`/me/view/$linkid`}
+                      params={{ linkid: val.id.toString() }}
+                    >
+                      <button
+                        title="Analytics"
+                        className="p-1 transition-colors rounded-lg bg-foreground/20 hover:bg-foreground/30"
+                      >
+                        <BadgeInfo className="text-foreground" size={20} />
+                      </button>
+                    </Link>
+                  </p>
+
+                  <p className={state[val.status].css}>{val.status}</p>
+                </li>
+              ))}
+            </>
+          )}
         </ul>
       </div>
     </div>
