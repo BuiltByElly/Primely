@@ -93,10 +93,10 @@ export default function EditModal(props: EditModalInterface) {
   };
 
   return (
-    <div className="w-screen h-screen fixed z-10">
+    <div className="w-screen h-screen fixed z-20">
       <div className="w-full h-full fixed bg-black/30" />
       <div className="flex flex-col justify-center h-full items-center">
-        <div className="bg-background z-3 flex flex-col gap-6 w-xl p-5 rounded-lg">
+        <div className="bg-background z-3 flex flex-col gap-6 w-[90%] p-5 rounded-lg xl:w-xl">
           <div>
             <p className="text-3xl font-manrope mb-10">
               Update Link - {capitalize(props.oldName)}

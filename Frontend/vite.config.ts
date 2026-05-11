@@ -7,6 +7,8 @@ import viteReact from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { nitro } from "nitro/vite";
 
+const BACKEND_URL = "http:localhost:8000";
+
 const config = defineConfig({
   resolve: { tsconfigPaths: true },
 
@@ -15,7 +17,15 @@ const config = defineConfig({
     nitro({
       rollupConfig: { external: [/^@sentry\//] },
       routeRules: {
-        "/api/**": { proxy: "http://localhost:8000/api/**" },
+        "/api/**": { proxy: `${BACKEND_URL}/api/**` },
+        "/r/**": {
+          proxy: {
+            to: `${BACKEND_URL}/r/**`,
+            fetchOptions: {
+              redirect: "manual",
+            },
+          },
+        },
       },
     }),
     tailwindcss(),
