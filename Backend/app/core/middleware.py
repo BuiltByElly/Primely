@@ -11,11 +11,8 @@ class ReqAndResLoggingMiddleware(BaseHTTPMiddleware):
         self, request: Request, call_next: RequestResponseEndpoint
     ) -> Response:
 
-        start = time()
         # process request and get a response
         response = await call_next(request)
-
-        latency = time() - start
 
         user_public_id = getattr(request.state, "public_id", None)
 
@@ -25,7 +22,6 @@ class ReqAndResLoggingMiddleware(BaseHTTPMiddleware):
                 "method": request.method,
                 "path": request.url.path,
                 "status": response.status_code,
-                "latency": latency,
                 "public_id": user_public_id,
             }
         )

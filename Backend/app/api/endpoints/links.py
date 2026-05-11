@@ -71,7 +71,7 @@ async def post_link(
 
 
 @links_router.get("/links", response_model=List[LinkResponse])
-@limiter.limit("15/minute")
+@limiter.limit("20/minute")
 async def get_links(
     current_user_public_id: Annotated[str, Depends(get_current_user)],
     session: SessionDeps,
@@ -92,7 +92,7 @@ async def get_links(
 
 
 @links_router.get("/links/{link_id}", response_model=LinkResponse)
-@limiter.limit("15/minute")
+@limiter.limit("20/minute")
 async def get_link(
     current_user_public_id: Annotated[str, Depends(get_current_user)],
     session: SessionDeps,
