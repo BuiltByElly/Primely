@@ -106,4 +106,10 @@ bun run dev
 
 ---
 
-**Built By [Elliot Otoijagha](https://elliot-otoijagha.pxxl.click) (@BuiltByElly)**
+<div style="display: flex; justify-content: space-between">
+    <p><b>Built By <a href="https://elliot-otoijagha.pxxl.click">Elliot Otoijagha</a></b></p>
+    <p>
+    <b>@BuiltByElly</b><br/>
+    <a href="https://x.com/BuiltByElly">Twitter</a> | <a href="https://substack.com/@builtbyelly">Substack</a> | <a href="mailto:eroms072020@gmail.com">Email</a> | <a href="https://www.linkedin.com/in/elliot-otoijagha-934323376/">LinkedIn</a>
+    </p>
+</div>

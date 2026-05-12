@@ -6,7 +6,7 @@ import { User } from "#/icons/user";
 import { LogOut, Menu, XCircle } from "lucide-react";
 import { authFetch } from "#/utils/authFetch";
 import { useToastStore } from "#/store/ToastStore";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 
