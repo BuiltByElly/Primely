@@ -9,6 +9,7 @@ import Toasts from "#/components/Toasts";
 import { DefaultErrorComponent } from "#/components/Error";
 import NotFound from "#/components/NotFound";
 
+const base = import.meta.env.VITE_BASE_URL;
 export const Route = createRootRoute({
   head: () => ({
     meta: [
@@ -20,13 +21,61 @@ export const Route = createRootRoute({
         content: "width=device-width, initial-scale=1",
       },
       {
-        title: "TanStack Start Starter",
+        title: "Primely - URL Shortner",
       },
+      {
+        name: "description",
+        content:
+          "A full stack URL Shortner with automatic malware scanning, click event analytics, and a personal dashboard.",
+      },
+      {
+        property: "og:title",
+        content: "Primely - URL Shortner",
+      },
+      {
+        property: "og:description",
+        content:
+          "A full stack URL Shortner with automatic malware scanning, click event analytics, and a personal dashboard.",
+      },
+      {
+        property: "og:image",
+        content: `${base}/images/primely.png`,
+      },
+      {
+        property: "og:type",
+        content: "website",
+      },
+      {
+        property: "og:url",
+        content: base,
+      },
+      {
+        name: "twitter:description",
+        content:
+          "A full stack URL Shortner with automatic malware scanning, click event analytics, and a personal dashboard.",
+      },
+      {
+        name: "twitter:image",
+        content: `${base}/images/primely.png`,
+      },
+      {
+        name: "twitter:card",
+        content: `summary_large_image`,
+      },
+      {
+        name: "twitter:title",
+        content: `Primely - URL Shortner`,
+      },
+      { name: "twitter:url", content: base },
     ],
     links: [
       {
         rel: "stylesheet",
         href: appCss,
+      },
+      {
+        rel: "icon",
+        href: "/favicon.ico",
       },
     ],
   }),

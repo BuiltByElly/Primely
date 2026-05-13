@@ -46,8 +46,8 @@
 /* Dark Theme (Default) */
 :root {
   /* Primary */
-  --primary: #f5a524;
-  --primary-hover: #f5aa4d;
+  --primary: #ff9d00;
+  --primary-hover: #f5a524;
   --primary-soft: #f5a5241a;
 
   /* Accent */
