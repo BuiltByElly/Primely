@@ -1,4 +1,3 @@
-Primely/README.md
 # Primely
 
 Shorten Links. Scan for malware. Track with ease.

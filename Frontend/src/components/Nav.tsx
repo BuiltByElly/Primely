@@ -22,7 +22,6 @@ export default function Nav({
   const navigate = useNavigate();
   const { addToast } = useToastStore();
   const [menu, setMenu] = useState(false);
-
   useGSAP(
     () => {
       if (menu) {

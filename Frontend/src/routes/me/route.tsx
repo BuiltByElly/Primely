@@ -24,6 +24,9 @@ function MeLayout() {
         if (!user) {
           const res = await authFetch("/api/me");
 
+          if (!res.ok) {
+            throw new Error("Error fetching user");
+          }
 
           const data = await res.json();
           setUser(data);
