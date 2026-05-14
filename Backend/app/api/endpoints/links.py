@@ -59,7 +59,7 @@ async def post_link(
             "Too many scanning links, triggering background task immediately"
         )
         try:
-            scan_links_task()
+            await scan_links_task()
         except Exception as e:
             logger.error(f"Failed to trigger background task: {e}")
 

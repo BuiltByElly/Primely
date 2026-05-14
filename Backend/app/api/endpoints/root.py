@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from sqlmodel import select
-from starlette.status import HTTP_401_UNAUTHORIZED
+from starlette.status import HTTP_404_NOT_FOUND
 
 from app.api.dependencies import SessionDeps
 from app.models.models import Users
@@ -29,7 +29,7 @@ async def me(
     ).first()
 
     if not current_user:
-        raise HTTPException(status_code=HTTP_401_UNAUTHORIZED, detail="User not found")
+        raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail="User not found")
 
     return {
         "public_id": current_user_public_id,
