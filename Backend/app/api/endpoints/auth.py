@@ -223,7 +223,7 @@ async def refresh(
 async def logout(
     response: Response,
     request: Request,
-    current_user_id: Annotated[str, Depends(get_current_user)],
+    current_user_public_id: Annotated[str, Depends(get_current_user)],
     session: SessionDeps,
 ):
     refresh_token = request.cookies.get("refresh_token")
@@ -253,5 +253,5 @@ async def logout(
     session.add(db_refresh_token)
     session.commit()
 
-    logger.info(f"User Action: {current_user_id} logged out")
+    logger.info(f"User Action: {current_user_public_id} logged out")
     return {"success": True, "message": "Logged out successfully"}

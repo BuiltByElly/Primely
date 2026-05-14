@@ -35,17 +35,17 @@ async def post_link(
     link: LinkCreate,
 ):
     """Post a new link for the current user"""
-    user = session.exec(
-        select(Users).where(Users.public_id == UUID(current_user_public_id))
+    user_id = session.exec(
+        select(Users.id).where(Users.public_id == UUID(current_user_public_id))
     ).first()
 
-    if not user:
+    if not user_id:
         raise HTTPException(
             status_code=HTTP_401_UNAUTHORIZED, detail="User not found, Go back to login"
         )
 
     new_link = Links(
-        user_id=user.id,
+        user_id=user_id,
         name=link.name,
         original_link=str(link.original_link),
         expires_at=datetime.now(timezone.utc) + timedelta(days=abs(link.lifetime)),
@@ -78,16 +78,16 @@ async def get_links(
     request: Request,
 ):
     """Get all links for the current user"""
-    user = session.exec(
-        select(Users).where(Users.public_id == UUID(current_user_public_id))
+    user_id = session.exec(
+        select(Users.id).where(Users.public_id == UUID(current_user_public_id))
     ).first()
 
-    if not user:
+    if not user_id:
         raise HTTPException(
             status_code=HTTP_401_UNAUTHORIZED, detail="User not found, Go back to login"
         )
 
-    links = session.exec(select(Links).where(Links.user_id == user.id)).all()
+    links = session.exec(select(Links).where(Links.user_id == user_id)).all()
     return [link.model_dump() for link in links]
 
 
@@ -100,18 +100,18 @@ async def get_link(
     request: Request,
 ):
     """Get a link that matches the link_id param for the current user"""
-    user = session.exec(
-        select(Users).where(Users.public_id == UUID(current_user_public_id))
+    user_id = session.exec(
+        select(Users.id).where(Users.public_id == UUID(current_user_public_id))
     ).first()
 
-    if not user:
+    if not user_id:
         raise HTTPException(
             status_code=HTTP_401_UNAUTHORIZED, detail="User not found, Go back to login"
         )
 
     try:
         link = session.exec(
-            select(Links).where(Links.user_id == user.id).where(Links.id == link_id)
+            select(Links).where(Links.user_id == user_id).where(Links.id == link_id)
         ).one()
     except NoResultFound:
         raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail="Link not found")
@@ -128,17 +128,17 @@ async def patch_link(
     link_update: LinkUpdate,
 ):
     """Update a link's name or original link and set status to scanning"""
-    user = session.exec(
-        select(Users).where(Users.public_id == UUID(current_user_public_id))
+    user_id = session.exec(
+        select(Users.id).where(Users.public_id == UUID(current_user_public_id))
     ).first()
 
-    if not user:
+    if not user_id:
         raise HTTPException(
             status_code=HTTP_401_UNAUTHORIZED, detail="User not found, Go back to login"
         )
 
     link = session.exec(
-        select(Links).where(Links.id == link_id, Links.user_id == user.id)
+        select(Links).where(Links.id == link_id, Links.user_id == user_id)
     ).first()
 
     if not link:
@@ -169,17 +169,17 @@ async def delete_link(
     request: Request,
 ):
     """Delete a link for the current user"""
-    user = session.exec(
-        select(Users).where(Users.public_id == UUID(current_user_public_id))
+    user_id = session.exec(
+        select(Users.id).where(Users.public_id == UUID(current_user_public_id))
     ).first()
 
-    if not user:
+    if not user_id:
         raise HTTPException(
             status_code=HTTP_401_UNAUTHORIZED, detail="User not found, Go back to login"
         )
 
     link = session.exec(
-        select(Links).where(Links.id == link_id, Links.user_id == user.id)
+        select(Links).where(Links.id == link_id, Links.user_id == user_id)
     ).first()
 
     if not link:
