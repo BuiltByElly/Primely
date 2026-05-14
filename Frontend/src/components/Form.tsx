@@ -7,6 +7,7 @@ import { useAuthStore, useRememberMeStore } from "#/store/AuthStore";
 import { Email } from "#/icons/email";
 import { Password } from "#/icons/password";
 import { User } from "#/icons/user";
+import { Link } from "@tanstack/react-router";
 
 const LOGIN_FIELDS = [
   {
@@ -169,9 +170,12 @@ const Form = ({ type }: { type: "login" | "register" }) => {
     <div className="min-h-screen w-full flex flex-col items-center justify-center bg-background px-4">
       {/* Header */}
       <div className="mb-12 xl:mb-0">
-        <h1 className="text-center text-[3rem] mt-12 font-primely leading-0 text-primary">
-          Primely
-        </h1>
+        <Link to="/">
+          <h1 className="text-center text-[3rem] mt-12 font-primely leading-0 text-primary">
+            Primely
+          </h1>
+        </Link>
+
         <h1 className="text-center text-[2rem] mt-6 font-manrope xl:text-[3rem]">
           {getHeaderText()}
         </h1>

@@ -9,6 +9,7 @@ import { useToastStore } from "#/store/ToastStore";
 import { useState } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
+import { useAuthStore } from "#/store/AuthStore";
 
 export default function Nav({
   username,
@@ -21,6 +22,7 @@ export default function Nav({
 }) {
   const navigate = useNavigate();
   const { addToast } = useToastStore();
+  const { setAccessToken } = useAuthStore();
   const [menu, setMenu] = useState(false);
   useGSAP(
     () => {
@@ -123,10 +125,16 @@ export default function Nav({
                   method: "DELETE",
                 });
                 if (res.ok) {
+                  setAccessToken(null);
                   navigate({ to: "/login" });
                   addToast({
                     state: "success",
                     text: "Logged out successfully",
+                  });
+                } else {
+                  addToast({
+                    state: "error",
+                    text: "An error occurred while trying log to out",
                   });
                 }
               }}
