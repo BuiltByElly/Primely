@@ -9,8 +9,13 @@ from app.models.models import Links
 from app.utils.generate_short_code import generate_unique_short_code
 from app.utils.scan_links import scan_links
 
+"""
+This function uses the Google Safe Browsing API to scan links in batches.
+It is called by APScheduler every 10s
+"""
 
-def scan_links_task():
+
+async def scan_links_task():
     with Session(engine) as session:
         unscanned_links = session.exec(
             select(Links)
@@ -21,7 +26,7 @@ def scan_links_task():
         if not unscanned_links:
             return
         try:
-            malicious_links = scan_links(
+            malicious_links = await scan_links(
                 [link.original_link for link in unscanned_links]
             )
 

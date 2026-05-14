@@ -1,6 +1,6 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import Hero from "./_sections/-Hero";
-import { ArrowRight, ExternalLink } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import { Github } from "#/icons/github";
 
 export const Route = createFileRoute("/")({ component: App });
@@ -8,7 +8,7 @@ export const Route = createFileRoute("/")({ component: App });
 function App() {
   return (
     <div className="w-full h-full">
-      <nav className="z-2 flex justify-between items-center px-5 py-3 border-b border-b-border sticky w-full bg-background top-0 left-0">
+      <nav className="z-2 flex justify-between items-center px-5 py-3 border-b border-b-border fixed w-full bg-background top-0 left-0">
         <h1 className="font-primely text-[1.7rem] tracking-wide text-primary">
           Primely
         </h1>

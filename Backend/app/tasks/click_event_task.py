@@ -19,16 +19,18 @@ def _get_cached_country(session: Session, ip: str) -> str | None:
     return cached_event
 
 
-def _fetch_country_from_ip_api(ip: str) -> str:
-    response = httpx.get(
-        f"http://ip-api.com/json/{ip}?fields=57345",
-        timeout=HTTP_TIMEOUT_SECONDS,
-    )
-    response.raise_for_status()
+async def _fetch_country_from_ip_api(ip: str) -> str:
+    async with httpx.AsyncClient() as client:
+        response = await client.get(
+            f"http://ip-api.com/json/{ip}?fields=57345",
+            timeout=HTTP_TIMEOUT_SECONDS,
+        )
+        response.raise_for_status()
 
-    payload = response.json()
+        payload = response.json()
+
     if payload.get("status") == "fail":
-        logger.warning(
+        logger.error(
             f"ip-api returned a failure for IP {ip}: {payload.get('message', 'Unknown error')}"
         )
         return "Unknown"
@@ -36,7 +38,7 @@ def _fetch_country_from_ip_api(ip: str) -> str:
     return payload.get("country", "Unknown")
 
 
-def click_event_task(link_id, ip, browser):
+async def click_event_task(link_id, ip, browser):
     country = "Unknown"
 
     try:
@@ -46,7 +48,7 @@ def click_event_task(link_id, ip, browser):
                 country = cached_country
             else:
                 try:
-                    country = _fetch_country_from_ip_api(ip)
+                    country = await _fetch_country_from_ip_api(ip)
                 except httpx.TimeoutException as e:
                     logger.warning(f"ip-api timed out - Error {e}")
                 except httpx.HTTPStatusError as e:

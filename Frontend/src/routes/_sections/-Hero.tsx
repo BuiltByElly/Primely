@@ -7,9 +7,9 @@ import { Link } from "@tanstack/react-router";
 
 const Hero = () => {
   return (
-    <div className="w-full h-full p-6 relative">
+    <div className="w-full min-h-full p-6 relative flex flex-col justify-end  overflow-y-clip">
       <Grid />
-      <div className="flex flex-col gap-6 justify-start pt-12 mb-12 xl:justify-center xl:pt-0 xl:p-8 xl:h-[75vh] xl:mb-0 xl:text-center">
+      <div className="flex flex-col gap-6 justify-start pt-12 mb-15 xl:justify-center xl:pt-0 xl:p-8 xl:h-[75vh] xl:mb-0 xl:text-center">
         <h1 className="text-7xl w-full font-manrope font-bold xl:w-[60%] xl:mx-auto xl:text-8xl">
           Shorten. <span className="text-primary">Scan.</span> Track.
         </h1>
@@ -19,7 +19,7 @@ const Hero = () => {
           project with FastAPI and Tanstack Start.
         </p>
         <Link to="/me">
-          <button className="w-fit bg-primary p-3 flex gap-3 rounded-lg hover:bg-primary-hover transition-colors mx-auto">
+          <button className="w-fit bg-primary p-3 flex items-center gap-3 rounded-lg hover:bg-primary-hover transition-colors xl:mx-auto">
             Get Started <ArrowRight />
           </button>
         </Link>
