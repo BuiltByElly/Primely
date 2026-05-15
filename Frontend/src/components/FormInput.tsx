@@ -51,7 +51,7 @@ const FormInput = ({
             onClick={() => setShowPassword(!showPassword)}
             className="focus:outline-none flex items-center justify-center p-1 hover:bg-foreground/20 transition-colors rounded-lg"
           >
-            {showPassword ? <EyeClosed /> : <EyeOpen />}
+            {showPassword ? <EyeClosed /> : <EyeOpen stroke="#fff" />}
           </button>
         )}
       </div>

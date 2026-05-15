@@ -7,6 +7,7 @@ import { useAuthStore, useRememberMeStore } from "#/store/AuthStore";
 import { Email } from "#/icons/email";
 import { Password } from "#/icons/password";
 import { User } from "#/icons/user";
+import { Link } from "@tanstack/react-router";
 
 const LOGIN_FIELDS = [
   {
@@ -105,9 +106,8 @@ const Form = ({ type }: { type: "login" | "register" }) => {
     onSuccess: (data) => {
       setFormData(initialState);
       setAccessToken(data["access_token"]);
-      if (isLogin) {
-        setRememberMe(formData.rememberMe);
-      }
+      setRememberMe(formData.rememberMe);
+
       navigate({ to: "/me" });
     },
 
@@ -129,7 +129,7 @@ const Form = ({ type }: { type: "login" | "register" }) => {
     setFormData((prev) => ({ ...prev, rememberMe: e.target.checked }));
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     mutation.mutate(formData);
   };
@@ -144,7 +144,7 @@ const Form = ({ type }: { type: "login" | "register" }) => {
 
   const getButtonColor = () => {
     if (isSuccess) return "bg-green-500";
-    return "bg-primary hover:bg-primary-alternate";
+    return "bg-primary hover:bg-primary-hover";
   };
 
   const getButtonText = () => {
@@ -170,9 +170,12 @@ const Form = ({ type }: { type: "login" | "register" }) => {
     <div className="min-h-screen w-full flex flex-col items-center justify-center bg-background px-4">
       {/* Header */}
       <div className="mb-12 xl:mb-0">
-        <h1 className="text-center text-[3rem] mt-12 font-primely leading-0 text-primary">
-          Primely
-        </h1>
+        <Link to="/">
+          <h1 className="text-center text-[3rem] mt-12 font-primely leading-0 text-primary">
+            Primely
+          </h1>
+        </Link>
+
         <h1 className="text-center text-[2rem] mt-6 font-manrope xl:text-[3rem]">
           {getHeaderText()}
         </h1>
@@ -193,8 +196,6 @@ const Form = ({ type }: { type: "login" | "register" }) => {
               type={field.type}
               placeholder={field.placeholder}
               icon={field.icon}
-              iconWidth={field.iconWidth}
-              iconHeight={field.iconHeight}
               value={formData[field.name as keyof typeof formData] as string}
               onChange={handleChange}
             />

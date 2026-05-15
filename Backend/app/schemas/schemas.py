@@ -24,14 +24,14 @@ class UserResponse(BaseModel):
 
 
 class LinkCreate(BaseModel):
-    name: str
+    name: str = Field(min_length=1, max_length=50)
     original_link: HttpUrl
     lifetime: Annotated[int, Field(le=30)] = 30
 
 
 class LinkUpdate(BaseModel):
-    name: str | None = None
-    original_link: HttpUrl | None = None
+    name: str = Field(min_length=1, max_length=50)
+    original_link: HttpUrl
 
 
 class ClicksOverTimeEntry(BaseModel):

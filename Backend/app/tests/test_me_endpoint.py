@@ -55,7 +55,7 @@ class TestMeEndpoint:
             "/api/me", headers={"Authorization": f"Bearer {access_token}"}
         )
 
-        assert response.status_code == 403
+        assert response.status_code == 404
         assert "User not found" in response.json()["detail"]
 
     def test_get_me_multiple_users(self, client, session):
