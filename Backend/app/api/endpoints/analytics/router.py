@@ -61,33 +61,33 @@ async def get_link_analytics(
     request: Request,
 ):
     """Get analytics for a link by id"""
-    user = session.exec(
-        select(Users).where(Users.public_id == current_user_public_id)
+    user_id = session.exec(
+        select(Users.id).where(Users.public_id == current_user_public_id)
     ).first()
 
-    if not user:
+    if not user_id:
         raise HTTPException(
             status_code=HTTP_401_UNAUTHORIZED, detail="User not found, Go back to login"
         )
 
-    link = session.exec(
-        select(Links).where(Links.id == link_id, Links.user_id == user.id)
+    link_id_db = session.exec(
+        select(Links.id).where(Links.id == link_id, Links.user_id == user_id)
     ).first()
 
-    if not link:
+    if not link_id_db:
         raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail="Link not found")
 
-    if link.id is None:
+    if link_id_db is None:
         return {
-            "link_id": link_id,
+            "link_id": link_id_db,
             "clicks_over_time": [],
             "clicks_by_country": [],
             "clicks_by_browser": [],
         }
 
     return {
-        "link_id": link.id,
-        "clicks_over_time": build_clicks_over_time(session, link.id, by_link=True),
-        "clicks_by_country": build_clicks_by_country(session, link.id, by_link=True),
-        "clicks_by_browser": build_clicks_by_browser(session, link.id, by_link=True),
+        "link_id": link_id_db,
+        "clicks_over_time": build_clicks_over_time(session, link_id_db, by_link=True),
+        "clicks_by_country": build_clicks_by_country(session, link_id_db, by_link=True),
+        "clicks_by_browser": build_clicks_by_browser(session, link_id_db, by_link=True),
     }
