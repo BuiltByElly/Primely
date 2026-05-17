@@ -10,7 +10,12 @@ import { nitro } from "nitro/vite";
 const config = defineConfig(({ mode }) => {
   const VITE_BACKEND = loadEnv(mode, process.cwd(), "").VITE_BACKEND_URL;
   return {
-    resolve: { tsconfigPaths: true },
+    resolve: {
+      tsconfigPaths: true,
+      alias: {
+        "#": path.resolve(__dirname),
+      },
+    },
 
     plugins: [
       devtools(),
