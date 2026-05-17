@@ -19,7 +19,10 @@ logger.addHandler(console_handler)
 
 # file handler with rotation
 
-file_handler = RotatingFileHandler("logs/app.log", maxBytes=10_485_760, backupCount=5)
+
+file_path = "logs/app.log" if settings.is_prod else "logs/app_dev.log"
+
+file_handler = RotatingFileHandler(file_path, maxBytes=10_485_760, backupCount=5)
 
 file_handler.setLevel(logging.INFO)
 file_formatter = logging.Formatter(

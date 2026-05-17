@@ -29,7 +29,7 @@ Thumbs.db
 *.swo
 
 # --- Logs ---
-*.log
+app_dev.log
 
 # --- General env files at root ---
 .env
