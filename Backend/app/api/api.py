@@ -13,7 +13,9 @@ from starlette.status import (
 )
 
 from app.api.dependencies import SessionDeps
+from app.api.endpoints.analytics.router import analytics_router
 from app.api.endpoints.auth import auth_router
+from app.api.endpoints.links import links_router
 from app.api.endpoints.root import root_router
 from app.models.models import Links
 from app.tasks.click_event_task import click_event_task
@@ -25,7 +27,8 @@ redirect_router = APIRouter(prefix="/r")
 # endpoints
 api_router.include_router(auth_router)
 api_router.include_router(root_router)
-
+api_router.include_router(links_router)
+api_router.include_router(analytics_router)
 limiter = Limiter(key_func=get_remote_address)
 
 
@@ -56,13 +59,19 @@ async def get_link_by_short_code(
                 raise HTTPException(
                     status_code=HTTP_410_GONE, detail="Link has expired"
                 )
-            background_tasks.add_task(click_event_task, link.id, ip, user_agent)  # type: ignore
+            background_tasks.add_task(click_event_task, link.id, ip, user_agent)
             return RedirectResponse(url=link.original_link, status_code=HTTP_302_FOUND)
 
         elif link.status == "scanning":
             raise HTTPException(
                 status_code=HTTP_503_SERVICE_UNAVAILABLE,
                 detail="Link is still being scanned for malicious activity",
+            )
+
+        elif link.status == "failed":
+            raise HTTPException(
+                status_code=HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Link scanning failed",
             )
 
     raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail="Link not found")

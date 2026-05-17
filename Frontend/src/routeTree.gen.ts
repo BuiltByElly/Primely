@@ -14,6 +14,9 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as MeRouteRouteImport } from './routes/me/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as MeIndexRouteImport } from './routes/me/index'
+import { Route as MeViewIndexRouteImport } from './routes/me/view/index'
+import { Route as MeAddIndexRouteImport } from './routes/me/add/index'
+import { Route as MeViewLinkidRouteImport } from './routes/me/view/$linkid'
 
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
@@ -40,6 +43,21 @@ const MeIndexRoute = MeIndexRouteImport.update({
   path: '/',
   getParentRoute: () => MeRouteRoute,
 } as any)
+const MeViewIndexRoute = MeViewIndexRouteImport.update({
+  id: '/view/',
+  path: '/view/',
+  getParentRoute: () => MeRouteRoute,
+} as any)
+const MeAddIndexRoute = MeAddIndexRouteImport.update({
+  id: '/add/',
+  path: '/add/',
+  getParentRoute: () => MeRouteRoute,
+} as any)
+const MeViewLinkidRoute = MeViewLinkidRouteImport.update({
+  id: '/view/$linkid',
+  path: '/view/$linkid',
+  getParentRoute: () => MeRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -47,12 +65,18 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/me/': typeof MeIndexRoute
+  '/me/view/$linkid': typeof MeViewLinkidRoute
+  '/me/add/': typeof MeAddIndexRoute
+  '/me/view/': typeof MeViewIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/me': typeof MeIndexRoute
+  '/me/view/$linkid': typeof MeViewLinkidRoute
+  '/me/add': typeof MeAddIndexRoute
+  '/me/view': typeof MeViewIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -61,13 +85,40 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/me/': typeof MeIndexRoute
+  '/me/view/$linkid': typeof MeViewLinkidRoute
+  '/me/add/': typeof MeAddIndexRoute
+  '/me/view/': typeof MeViewIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/me' | '/login' | '/register' | '/me/'
+  fullPaths:
+    | '/'
+    | '/me'
+    | '/login'
+    | '/register'
+    | '/me/'
+    | '/me/view/$linkid'
+    | '/me/add/'
+    | '/me/view/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/register' | '/me'
-  id: '__root__' | '/' | '/me' | '/login' | '/register' | '/me/'
+  to:
+    | '/'
+    | '/login'
+    | '/register'
+    | '/me'
+    | '/me/view/$linkid'
+    | '/me/add'
+    | '/me/view'
+  id:
+    | '__root__'
+    | '/'
+    | '/me'
+    | '/login'
+    | '/register'
+    | '/me/'
+    | '/me/view/$linkid'
+    | '/me/add/'
+    | '/me/view/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -114,15 +165,42 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MeIndexRouteImport
       parentRoute: typeof MeRouteRoute
     }
+    '/me/view/': {
+      id: '/me/view/'
+      path: '/view'
+      fullPath: '/me/view/'
+      preLoaderRoute: typeof MeViewIndexRouteImport
+      parentRoute: typeof MeRouteRoute
+    }
+    '/me/add/': {
+      id: '/me/add/'
+      path: '/add'
+      fullPath: '/me/add/'
+      preLoaderRoute: typeof MeAddIndexRouteImport
+      parentRoute: typeof MeRouteRoute
+    }
+    '/me/view/$linkid': {
+      id: '/me/view/$linkid'
+      path: '/view/$linkid'
+      fullPath: '/me/view/$linkid'
+      preLoaderRoute: typeof MeViewLinkidRouteImport
+      parentRoute: typeof MeRouteRoute
+    }
   }
 }
 
 interface MeRouteRouteChildren {
   MeIndexRoute: typeof MeIndexRoute
+  MeViewLinkidRoute: typeof MeViewLinkidRoute
+  MeAddIndexRoute: typeof MeAddIndexRoute
+  MeViewIndexRoute: typeof MeViewIndexRoute
 }
 
 const MeRouteRouteChildren: MeRouteRouteChildren = {
   MeIndexRoute: MeIndexRoute,
+  MeViewLinkidRoute: MeViewLinkidRoute,
+  MeAddIndexRoute: MeAddIndexRoute,
+  MeViewIndexRoute: MeViewIndexRoute,
 }
 
 const MeRouteRouteWithChildren =

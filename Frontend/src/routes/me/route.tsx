@@ -1,16 +1,10 @@
-import { useRememberMeStore, useAuthStore } from "#/store/AuthStore";
+import { useUserStore } from "#/store/AuthStore";
 import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-
-export const getAccessToken = async () => {
-  const res = await fetch(
-    `/api/auth/refresh?remember_me=${useRememberMeStore.getState().rememberMe}`,
-    { method: "POST", credentials: "include" },
-  );
-  if (!res.ok) return null;
-  const data = await res.json();
-  return data.access_token as string;
-};
+import { authFetch } from "#/utils/authFetch";
+import Footer from "#/components/Footer";
+import Loading from "#/components/Loading";
+import { useToastStore } from "#/store/ToastStore";
 
 export const Route = createFileRoute("/me")({
   component: MeLayout,
@@ -18,40 +12,34 @@ export const Route = createFileRoute("/me")({
 
 function MeLayout() {
   const navigate = useNavigate();
-  const accessToken = useAuthStore((s) => s.accessToken);
-  const setAccessToken = useAuthStore((s) => s.setAccessToken);
-  const setUser = useAuthStore((s) => s.setUser);
+  const setUser = useUserStore((s) => s.setUser);
+  const user = useUserStore((s) => s.user);
   const [isReady, setIsReady] = useState(false);
+  const { addToast } = useToastStore();
 
   useEffect(() => {
     const init = async () => {
-      let token = accessToken;
-
-      if (!token) {
-        token = await getAccessToken();
-        setAccessToken(token);
-        if (!token) {
-          navigate({ to: "/login" });
-          return;
-        }
-      }
-
       // fetch user data
       try {
-        const res = await fetch(`/api/me`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        if (!user) {
+          const res = await authFetch("/api/me");
 
-        if (!res.ok) {
-          throw new Error("Failed to fetch user");
+          if (!res.ok) {
+            throw new Error("Error fetching user");
+          }
+
+          const data = await res.json();
+          setUser(data);
         }
-
-        const data = await res.json();
-        setUser(data);
       } catch (error) {
         console.error("Error fetching user:", error);
-        setAccessToken(null);
-        navigate({ to: "/login" });
+        setTimeout(() => {
+          navigate({ to: "/login" });
+        }, 500);
+        addToast({
+          state: "error",
+          text: "Oops, seems the system does not know who you are. Try logging in.",
+        });
       } finally {
         setIsReady(true);
       }
@@ -60,11 +48,12 @@ function MeLayout() {
     init();
   }, []);
 
-  if (!isReady) return <div>Loading...</div>;
+  if (!isReady) return <Loading />;
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background text-foreground font-inter">
       <Outlet />
+      <Footer />
     </div>
   );
 }

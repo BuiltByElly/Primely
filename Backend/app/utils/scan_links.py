@@ -3,7 +3,7 @@ import httpx
 from app.core.config import settings
 
 
-def scan_links(urls: list[str]) -> set[str]:
+async def scan_links(urls: list[str]) -> set[str]:
     """Returns a set of malicious URLs"""
     api_key = settings.GOOGLE_SAFE_BROWSING_API_KEY
 
@@ -22,11 +22,12 @@ def scan_links(urls: list[str]) -> set[str]:
         },
     }
 
-    with httpx.Client() as client:
-        response = client.post(
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
             f"https://safebrowsing.googleapis.com/v4/threatMatches:find?key={api_key}",
             json=payload,
         )
+        response.raise_for_status()
         data = response.json()
 
     # Empty response = all safe
