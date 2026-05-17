@@ -1,6 +1,6 @@
 import { useUserStore } from "#/store/AuthStore";
 import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { authFetch } from "#/utils/authFetch";
 import Footer from "#/components/Footer";
 import Loading from "#/components/Loading";
@@ -16,6 +16,7 @@ function MeLayout() {
   const user = useUserStore((s) => s.user);
   const [isReady, setIsReady] = useState(false);
   const { addToast } = useToastStore();
+  const hasNotifiedRef = useRef(false);
 
   useEffect(() => {
     const init = async () => {
@@ -32,7 +33,11 @@ function MeLayout() {
           setUser(data);
         }
       } catch (error) {
-        console.error("Error fetching user:", error);
+        if (hasNotifiedRef.current) {
+          return;
+        }
+
+        hasNotifiedRef.current = true;
         setTimeout(() => {
           navigate({ to: "/login" });
         }, 500);
